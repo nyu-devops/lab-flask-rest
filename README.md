@@ -30,10 +30,10 @@ Then all you have to do is clone this repo and invoke vagrant:
 
 ## Alternate install using local Python
 
-If you have Python installed on your computer you can make a virtual environment and run the code locally with:
+If you have Python 3 installed on your computer you can make a virtual environment and run the code locally with:
 
 ```bash
-    virtualenv venv
+    python3 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
     flask run

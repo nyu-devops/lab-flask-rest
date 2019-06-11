@@ -245,5 +245,5 @@ def initialize():
 #   M A I N
 ######################################################################
 if __name__ == "__main__":
-    print "Pet Service Starting..."
+    print('Pet Service Starting...')
     app.run(host='0.0.0.0', port=int(PORT), debug=DEBUG)

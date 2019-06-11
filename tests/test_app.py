@@ -142,8 +142,8 @@ class TestPetService(unittest.TestCase):
         resp = self.app.get('/pets', query_string='category=dog')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(len(resp.data) > 0)
-        self.assertTrue('fido' in resp.data)
-        self.assertFalse('kitty' in resp.data)
+        self.assertTrue(b'fido' in resp.data)
+        self.assertFalse(b'kitty' in resp.data)
         data = resp.get_json()
         query_item = data[0]
         self.assertEqual(query_item['category'], 'dog')
@@ -152,3 +152,10 @@ class TestPetService(unittest.TestCase):
         """ Call a Method thats not Allowed """
         resp = self.app.post('/pets/0')
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+######################################################################
+#   M A I N
+######################################################################
+if __name__ == '__main__':
+    unittest.main()
