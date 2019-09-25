@@ -25,7 +25,7 @@ Then all you have to do is clone this repo and invoke vagrant:
     vagrant up
     vagrant ssh
     cd /vagrant
-    flask run -h 0.0.0.0
+    FLASK_APP=service:app flask run -h 0.0.0.0
 ```
 
 ## Alternate install using local Python
@@ -36,7 +36,7 @@ If you have Python 3 installed on your computer you can make a virtual environme
     python3 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
-    flask run
+    FLASK_APP=service:app flask run
 ```
 
 ## Manually running the Tests
@@ -60,7 +60,7 @@ This is particularly useful because it reports the line numbers for the code tha
 To run the service use `flask run` (Press Ctrl+C to exit):
 
 ```bash
-    flask run -h 0.0.0.0
+    FLASK_APP=service:app flask run -h 0.0.0.0
 ```
 
 You must pass the parameters `-h 0.0.0.0` to have it listed on all network adapters to that the post can be forwarded by `vagrant` to your host computer so that you can open the web page in a local browser at: http://localhost:5000
