@@ -19,6 +19,11 @@ Vagrant.configure(2) do |config|
   # using a specific IP.
   config.vm.network "private_network", ip: "192.168.33.10"
 
+  # Mac users can comment this next line out but
+  # Windows users need to change the permission of files and directories
+  # so that nosetests runs without extra arguments.
+  config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
+
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
