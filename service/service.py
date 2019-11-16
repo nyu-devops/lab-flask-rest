@@ -28,7 +28,7 @@ import os
 import sys
 import logging
 from flask import Flask, jsonify, request, url_for, make_response, abort
-from flask_api import status    # HTTP Status Codes
+from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
@@ -47,73 +47,102 @@ def request_validation_error(error):
     """ Handles Value Errors from bad data """
     return bad_request(error)
 
+
 @app.errorhandler(status.HTTP_400_BAD_REQUEST)
 def bad_request(error):
     """ Handles bad reuests with 400_BAD_REQUEST """
     message = str(error)
     app.logger.warning(message)
-    return jsonify(status=status.HTTP_400_BAD_REQUEST,
-                   error='Bad Request',
-                   message=message), status.HTTP_400_BAD_REQUEST
+    return (
+        jsonify(
+            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+        ),
+        status.HTTP_400_BAD_REQUEST,
+    )
+
 
 @app.errorhandler(status.HTTP_404_NOT_FOUND)
 def not_found(error):
     """ Handles resources not found with 404_NOT_FOUND """
     message = str(error)
     app.logger.warning(message)
-    return jsonify(status=status.HTTP_404_NOT_FOUND,
-                   error='Not Found',
-                   message=message), status.HTTP_404_NOT_FOUND
+    return (
+        jsonify(status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message),
+        status.HTTP_404_NOT_FOUND,
+    )
+
 
 @app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
 def method_not_supported(error):
     """ Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED """
     message = str(error)
     app.logger.warning(message)
-    return jsonify(status=status.HTTP_405_METHOD_NOT_ALLOWED,
-                   error='Method not Allowed',
-                   message=message), status.HTTP_405_METHOD_NOT_ALLOWED
+    return (
+        jsonify(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            error="Method not Allowed",
+            message=message,
+        ),
+        status.HTTP_405_METHOD_NOT_ALLOWED,
+    )
+
 
 @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 def mediatype_not_supported(error):
     """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
     message = str(error)
     app.logger.warning(message)
-    return jsonify(status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                   error='Unsupported media type',
-                   message=message), status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
+    return (
+        jsonify(
+            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            error="Unsupported media type",
+            message=message,
+        ),
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+    )
+
 
 @app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
 def internal_server_error(error):
     """ Handles unexpected server error with 500_SERVER_ERROR """
     message = str(error)
     app.logger.error(message)
-    return jsonify(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                   error='Internal Server Error',
-                   message=message), status.HTTP_500_INTERNAL_SERVER_ERROR
+    return (
+        jsonify(
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            error="Internal Server Error",
+            message=message,
+        ),
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
 
 
 ######################################################################
 # GET INDEX
 ######################################################################
-@app.route('/')
+@app.route("/")
 def index():
     """ Root URL response """
-    return jsonify(name='Pet Demo REST API Service',
-                   version='1.0',
-                   paths=url_for('list_pets', _external=True)
-                  ), status.HTTP_200_OK
+    return (
+        jsonify(
+            name="Pet Demo REST API Service",
+            version="1.0",
+            paths=url_for("list_pets", _external=True),
+        ),
+        status.HTTP_200_OK,
+    )
+
 
 ######################################################################
 # LIST ALL PETS
 ######################################################################
-@app.route('/pets', methods=['GET'])
+@app.route("/pets", methods=["GET"])
 def list_pets():
     """ Returns all of the Pets """
-    app.logger.info('Request for pet list')
+    app.logger.info("Request for pet list")
     pets = []
-    category = request.args.get('category')
-    name = request.args.get('name')
+    category = request.args.get("category")
+    name = request.args.get("name")
     if category:
         pets = Pet.find_by_category(category)
     elif name:
@@ -128,14 +157,14 @@ def list_pets():
 ######################################################################
 # RETRIEVE A PET
 ######################################################################
-@app.route('/pets/<int:pet_id>', methods=['GET'])
+@app.route("/pets/<int:pet_id>", methods=["GET"])
 def get_pets(pet_id):
     """
     Retrieve a single Pet
 
     This endpoint will return a Pet based on it's id
     """
-    app.logger.info('Request for pet with id: %s', pet_id)
+    app.logger.info("Request for pet with id: %s", pet_id)
     pet = Pet.find(pet_id)
     if not pet:
         raise NotFound("Pet with id '{}' was not found.".format(pet_id))
@@ -145,37 +174,36 @@ def get_pets(pet_id):
 ######################################################################
 # ADD A NEW PET
 ######################################################################
-@app.route('/pets', methods=['POST'])
+@app.route("/pets", methods=["POST"])
 def create_pets():
     """
     Creates a Pet
     This endpoint will create a Pet based the data in the body that is posted
     """
-    app.logger.info('Request to create a pet')
-    check_content_type('application/json')
+    app.logger.info("Request to create a pet")
+    check_content_type("application/json")
     pet = Pet()
     pet.deserialize(request.get_json())
     pet.save()
     message = pet.serialize()
-    location_url = url_for('get_pets', pet_id=pet.id, _external=True)
-    return make_response(jsonify(message), status.HTTP_201_CREATED,
-                         {
-                             'Location': location_url
-                         })
+    location_url = url_for("get_pets", pet_id=pet.id, _external=True)
+    return make_response(
+        jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+    )
 
 
 ######################################################################
 # UPDATE AN EXISTING PET
 ######################################################################
-@app.route('/pets/<int:pet_id>', methods=['PUT'])
+@app.route("/pets/<int:pet_id>", methods=["PUT"])
 def update_pets(pet_id):
     """
     Update a Pet
 
     This endpoint will update a Pet based the body that is posted
     """
-    app.logger.info('Request to update pet with id: %s', pet_id)
-    check_content_type('application/json')
+    app.logger.info("Request to update pet with id: %s", pet_id)
+    check_content_type("application/json")
     pet = Pet.find(pet_id)
     if not pet:
         raise NotFound("Pet with id '{}' was not found.".format(pet_id))
@@ -188,42 +216,46 @@ def update_pets(pet_id):
 ######################################################################
 # DELETE A PET
 ######################################################################
-@app.route('/pets/<int:pet_id>', methods=['DELETE'])
+@app.route("/pets/<int:pet_id>", methods=["DELETE"])
 def delete_pets(pet_id):
     """
     Delete a Pet
 
     This endpoint will delete a Pet based the id specified in the path
     """
-    app.logger.info('Request to delete pet with id: %s', pet_id)
+    app.logger.info("Request to delete pet with id: %s", pet_id)
     pet = Pet.find(pet_id)
     if pet:
         pet.delete()
-    return make_response('', status.HTTP_204_NO_CONTENT)
+    return make_response("", status.HTTP_204_NO_CONTENT)
+
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
+
 
 def init_db():
     """ Initialies the SQLAlchemy app """
     global app
     Pet.init_db(app)
 
+
 def check_content_type(content_type):
     """ Checks that the media type is correct """
-    if request.headers['Content-Type'] == content_type:
+    if request.headers["Content-Type"] == content_type:
         return
-    app.logger.error('Invalid Content-Type: %s', request.headers['Content-Type'])
-    abort(415, 'Content-Type must be {}'.format(content_type))
+    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
+    abort(415, "Content-Type must be {}".format(content_type))
+
 
 def initialize_logging(log_level=logging.INFO):
     """ Initialized the default logging to STDOUT """
     if not app.debug:
-        print('Setting up logging...')
+        print("Setting up logging...")
         # Set up default logging for submodules to use STDOUT
         # datefmt='%m/%d/%Y %I:%M:%S %p'
-        fmt = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+        fmt = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
         logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
         # Make a new log handler that uses STDOUT
         handler = logging.StreamHandler(sys.stdout)
@@ -236,4 +268,4 @@ def initialize_logging(log_level=logging.INFO):
         app.logger.addHandler(handler)
         app.logger.setLevel(log_level)
         app.logger.propagate = False
-        app.logger.info('Logging handler established')
+        app.logger.info("Logging handler established")
