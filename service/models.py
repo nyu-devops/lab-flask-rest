@@ -31,13 +31,13 @@ available (boolean) - True for pets that are available for adoption
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
+logger = logging.getLogger("flask.app")
+
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
 
-
 class DataValidationError(Exception):
     """ Used for an data validation errors when deserializing """
-
     pass
 
 
@@ -49,7 +49,6 @@ class Pet(db.Model):
     from us by SQLAlchemy's object relational mappings (ORM)
     """
 
-    logger = logging.getLogger("flask.app")
     app = None
 
     # Table Schema
@@ -59,20 +58,27 @@ class Pet(db.Model):
     available = db.Column(db.Boolean())
 
     def __repr__(self):
-        return "<Pet %r>" % (self.name)
+        return "<Pet %r id=[%s]>" % (self.name, self.id)
+
+    def create(self):
+        """
+        Creates a Pet to the database
+        """
+        logger.info("Creating %s", self.name)
+        self.id = None  # id must be none to generate next primary key
+        db.session.add(self)
+        db.session.commit()
 
     def save(self):
         """
-        Saves a Pet to the data store
+        Updates a Pet to the database
         """
-        Pet.logger.info("Saving %s", self.name)
-        if not self.id:
-            db.session.add(self)
+        logger.info("Saving %s", self.name)
         db.session.commit()
 
     def delete(self):
         """ Removes a Pet from the data store """
-        Pet.logger.info("Deleting %s", self.name)
+        logger.info("Deleting %s", self.name)
         db.session.delete(self)
         db.session.commit()
 
@@ -107,7 +113,7 @@ class Pet(db.Model):
     @classmethod
     def init_db(cls, app):
         """ Initializes the database session """
-        cls.logger.info("Initializing database")
+        logger.info("Initializing database")
         cls.app = app
         # This is where we initialize SQLAlchemy from the Flask app
         db.init_app(app)
@@ -117,19 +123,19 @@ class Pet(db.Model):
     @classmethod
     def all(cls):
         """ Returns all of the Pets in the database """
-        cls.logger.info("Processing all Pets")
+        logger.info("Processing all Pets")
         return cls.query.all()
 
     @classmethod
     def find(cls, pet_id):
         """ Finds a Pet by it's ID """
-        cls.logger.info("Processing lookup for id %s ...", pet_id)
+        logger.info("Processing lookup for id %s ...", pet_id)
         return cls.query.get(pet_id)
 
     @classmethod
     def find_or_404(cls, pet_id):
         """ Find a Pet by it's id """
-        cls.logger.info("Processing lookup or 404 for id %s ...", pet_id)
+        logger.info("Processing lookup or 404 for id %s ...", pet_id)
         return cls.query.get_or_404(pet_id)
 
     @classmethod
@@ -139,7 +145,7 @@ class Pet(db.Model):
         Args:
             name (string): the name of the Pets you want to match
         """
-        cls.logger.info("Processing name query for %s ...", name)
+        logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
 
     @classmethod
@@ -149,7 +155,7 @@ class Pet(db.Model):
         Args:
             category (string): the category of the Pets you want to match
         """
-        cls.logger.info("Processing category query for %s ...", category)
+        logger.info("Processing category query for %s ...", category)
         return cls.query.filter(cls.category == category)
 
     @classmethod
@@ -160,5 +166,5 @@ class Pet(db.Model):
         Args:
             available (boolean): True for pets that are available
         """
-        cls.logger.info("Processing available query for %s ...", available)
+        logger.info("Processing available query for %s ...", available)
         return cls.query.filter(cls.available == available)

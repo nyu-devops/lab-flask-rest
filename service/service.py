@@ -184,7 +184,7 @@ def create_pets():
     check_content_type("application/json")
     pet = Pet()
     pet.deserialize(request.get_json())
-    pet.save()
+    pet.create()
     message = pet.serialize()
     location_url = url_for("get_pets", pet_id=pet.id, _external=True)
     return make_response(

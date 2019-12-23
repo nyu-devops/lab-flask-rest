@@ -19,16 +19,19 @@ Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
   codecov --token=$CODECOV_TOKEN
+
+  While debugging just these tests it's convinient to use this:
+    nosetests --stop tests/test_service.py:TestPetServer
 """
 
-import unittest
 import os
 import logging
+from unittest import TestCase
 from flask_api import status  # HTTP Status Codes
 from unittest.mock import MagicMock, patch
 from service.models import Pet, DataValidationError, db
-from .pet_factory import PetFactory
-from service.service import app, init_db, initialize_logging
+from .factories import PetFactory
+from service.service import app, init_db
 
 # DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
 DATABASE_URI = os.getenv(
@@ -38,16 +41,16 @@ DATABASE_URI = os.getenv(
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class TestPetServer(unittest.TestCase):
+class TestPetServer(TestCase):
     """ Pet Server Tests """
 
     @classmethod
     def setUpClass(cls):
         """ Run once before all tests """
-        app.debug = False
-        initialize_logging(logging.INFO)
-        # Set up the test database
+        app.config['TESTING'] = True
+        app.config['DEBUG'] = False
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
+        init_db()
 
     @classmethod
     def tearDownClass(cls):
@@ -55,7 +58,6 @@ class TestPetServer(unittest.TestCase):
 
     def setUp(self):
         """ Runs before each test """
-        init_db()
         db.drop_all()  # clean up the last tests
         db.create_all()  # create new tables
         self.app = app.test_client()
