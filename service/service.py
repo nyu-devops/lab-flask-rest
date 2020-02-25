@@ -247,25 +247,3 @@ def check_content_type(content_type):
         return
     app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
     abort(415, "Content-Type must be {}".format(content_type))
-
-
-def initialize_logging(log_level=logging.INFO):
-    """ Initialized the default logging to STDOUT """
-    if not app.debug:
-        print("Setting up logging...")
-        # Set up default logging for submodules to use STDOUT
-        # datefmt='%m/%d/%Y %I:%M:%S %p'
-        fmt = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
-        logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
-        # Make a new log handler that uses STDOUT
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter(fmt))
-        handler.setLevel(log_level)
-        # Remove the Flask default handlers and use our own
-        handler_list = list(app.logger.handlers)
-        for log_handler in handler_list:
-            app.logger.removeHandler(log_handler)
-        app.logger.addHandler(handler)
-        app.logger.setLevel(log_level)
-        app.logger.propagate = False
-        app.logger.info("Logging handler established")

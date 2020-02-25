@@ -23,24 +23,24 @@ import sys
 import logging
 from flask import Flask
 
-# Get configuration from environment
-DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres"
-)
-SECRET_KEY = os.getenv("SECRET_KEY", "s3cr3t-key-shhhh")
-
 # Create Flask application
 app = Flask(__name__)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = SECRET_KEY
+app.config.from_object('config')
 
 # Import the rutes After the Flask app is created
 from service import service, models
 
 # Set up logging for production
-service.initialize_logging()
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+    app.logger.propagate = False
+    # Make all log formats consistent
+    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s", "%Y-%m-%d %H:%M:%S %z")
+    for handler in app.logger.handlers:
+        handler.setFormatter(formatter)
+    app.logger.info('Logging handler established')
 
 app.logger.info(70 * "*")
 app.logger.info("  P E T   S E R V I C E   R U N N I N G  ".center(70, "*"))
