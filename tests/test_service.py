@@ -27,11 +27,11 @@ Test cases can be run with the following:
 import os
 import logging
 from unittest import TestCase
-from flask_api import status  # HTTP Status Codes
 from unittest.mock import MagicMock, patch
-from service.models import Pet, DataValidationError, db
-from .factories import PetFactory
+from flask_api import status  # HTTP Status Codes
+from service.models import db
 from service.service import app, init_db
+from .factories import PetFactory
 
 # DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
 DATABASE_URI = os.getenv(
@@ -123,7 +123,7 @@ class TestPetServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         # Make sure location header is set
         location = resp.headers.get("Location", None)
-        self.assertTrue(location != None)
+        self.assertIsNotNone(location)
         # Check the data is correct
         new_pet = resp.get_json()
         self.assertEqual(new_pet["name"], test_pet.name, "Names do not match")
