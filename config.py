@@ -1,3 +1,6 @@
+"""
+Global Configuration for Application
+"""
 import os
 
 # Get configuration from environment
