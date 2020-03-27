@@ -17,8 +17,7 @@ Test Factory to make fake objects for testing
 """
 import factory
 from factory.fuzzy import FuzzyChoice
-from service.models import Pet
-
+from service.models import Pet, Gender
 
 class PetFactory(factory.Factory):
     """ Creates fake pets that you don't have to feed """
@@ -30,9 +29,4 @@ class PetFactory(factory.Factory):
     name = factory.Faker("first_name")
     category = FuzzyChoice(choices=["dog", "cat", "bird", "fish"])
     available = FuzzyChoice(choices=[True, False])
-
-
-if __name__ == "__main__":
-    for _ in range(10):
-        pet = PetFactory()
-        print(pet.serialize())
+    gender = FuzzyChoice(choices=[Gender.Male, Gender.Female, Gender.Unknown])

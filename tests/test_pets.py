@@ -27,7 +27,7 @@ import logging
 import unittest
 import os
 from werkzeug.exceptions import NotFound
-from service.models import Pet, DataValidationError, db
+from service.models import Pet, Gender, DataValidationError, db
 from service import app
 from .factories import PetFactory
 
@@ -64,20 +64,22 @@ class TestPetModel(unittest.TestCase):
 
     def test_create_a_pet(self):
         """ Create a pet and assert that it exists """
-        pet = Pet(name="fido", category="dog", available=True)
+        pet = Pet(name="fido", category="dog", available=True, gender=Gender.Male)
         self.assertTrue(pet != None)
         self.assertEqual(pet.id, None)
         self.assertEqual(pet.name, "fido")
         self.assertEqual(pet.category, "dog")
         self.assertEqual(pet.available, True)
-        pet = Pet(name="fido", category="dog", available=False)
+        self.assertEqual(pet.gender, Gender.Male)
+        pet = Pet(name="fido", category="dog", available=False, gender=Gender.Female)
         self.assertEqual(pet.available, False)
+        self.assertEqual(pet.gender, Gender.Female)
 
     def test_add_a_pet(self):
         """ Create a pet and add it to the database """
         pets = Pet.all()
         self.assertEqual(pets, [])
-        pet = Pet(name="fido", category="dog", available=True)
+        pet = Pet(name="fido", category="dog", available=True, gender=Gender.Male)
         self.assertTrue(pet != None)
         self.assertEqual(pet.id, None)
         pet.create()
@@ -128,10 +130,12 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(data["category"], pet.category)
         self.assertIn("available", data)
         self.assertEqual(data["available"], pet.available)
+        self.assertIn("gender", data)
+        self.assertEqual(data["gender"], pet.gender.name)
 
     def test_deserialize_a_pet(self):
         """ Test deserialization of a Pet """
-        data = {"id": 1, "name": "kitty", "category": "cat", "available": True}
+        data = {"id": 1, "name": "kitty", "category": "cat", "available": True, "gender": "Female"}
         pet = Pet()
         pet.deserialize(data)
         self.assertNotEqual(pet, None)
@@ -139,6 +143,13 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(pet.name, "kitty")
         self.assertEqual(pet.category, "cat")
         self.assertEqual(pet.available, True)
+        self.assertEqual(pet.gender, Gender.Female)
+
+    def test_deserialize_missing_data(self):
+        """ Test deserialization of a Pet """
+        data = {"id": 1, "name": "kitty", "category": "cat"}
+        pet = Pet()
+        self.assertRaises(DataValidationError, pet.deserialize, data)
 
     def test_deserialize_bad_data(self):
         """ Test deserialization of bad data """
@@ -178,6 +189,34 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(pets[0].category, "cat")
         self.assertEqual(pets[0].name, "kitty")
         self.assertEqual(pets[0].available, False)
+
+    def test_find_by_availability(self):
+        """ Find Pets by Category """
+        Pet(name="fido", category="dog", available=True).create()
+        Pet(name="kitty", category="cat", available=False).create()
+        Pet(name="fifi", category="dog", available=True).create()
+        pets = Pet.find_by_availability(False)
+        pet_list = [pet for pet in pets]
+        self.assertEqual(len(pet_list), 1)
+        self.assertEqual(pets[0].name, "kitty")
+        self.assertEqual(pets[0].category, "cat")
+        pets = Pet.find_by_availability(True)
+        pet_list = [pet for pet in pets]
+        self.assertEqual(len(pet_list), 2)
+
+    def test_find_by_gender(self):
+        """ Find Pets by Category """
+        Pet(name="fido", category="dog", available=True, gender=Gender.Male).create()
+        Pet(name="kitty", category="cat", available=False, gender=Gender.Female).create()
+        Pet(name="fifi", category="dog", available=True, gender=Gender.Male).create()
+        pets = Pet.find_by_gender(Gender.Female)
+        pet_list = [pet for pet in pets]
+        self.assertEqual(len(pet_list), 1)
+        self.assertEqual(pets[0].name, "kitty")
+        self.assertEqual(pets[0].category, "cat")
+        pets = Pet.find_by_gender(Gender.Male)
+        pet_list = [pet for pet in pets]
+        self.assertEqual(len(pet_list), 2)
 
     def test_find_or_404_found(self):
         """ Find or return 404 found """

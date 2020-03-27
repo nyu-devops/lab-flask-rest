@@ -117,6 +117,7 @@ class TestPetServer(TestCase):
     def test_create_pet(self):
         """ Create a new Pet """
         test_pet = PetFactory()
+        logging.debug(test_pet)
         resp = self.app.post(
             "/pets", json=test_pet.serialize(), content_type="application/json"
         )
@@ -156,6 +157,7 @@ class TestPetServer(TestCase):
 
         # update the pet
         new_pet = resp.get_json()
+        logging.debug(new_pet)
         new_pet["category"] = "unknown"
         resp = self.app.put(
             "/pets/{}".format(new_pet["id"]),

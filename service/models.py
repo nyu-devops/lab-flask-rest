@@ -29,6 +29,7 @@ available (boolean) - True for pets that are available for adoption
 
 """
 import logging
+from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger("flask.app")
@@ -40,6 +41,11 @@ class DataValidationError(Exception):
     """ Used for an data validation errors when deserializing """
     pass
 
+class Gender(Enum):
+    """ Enumeration of valid Pet Genders """
+    Male = 0
+    Female = 1
+    Unknown = 3
 
 class Pet(db.Model):
     """
@@ -53,9 +59,10 @@ class Pet(db.Model):
 
     # Table Schema
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
-    category = db.Column(db.String(63))
-    available = db.Column(db.Boolean())
+    name = db.Column(db.String(63), nullable=False)
+    category = db.Column(db.String(63), nullable=False)
+    available = db.Column(db.Boolean(), nullable=False, default=False)
+    gender = db.Column(db.Enum(Gender), nullable=False, server_default=(Gender.Unknown.name))
 
     def __repr__(self):
         return "<Pet %r id=[%s]>" % (self.name, self.id)
@@ -89,6 +96,7 @@ class Pet(db.Model):
             "name": self.name,
             "category": self.category,
             "available": self.available,
+            "gender": self.gender.name, # convert enum to string
         }
 
     def deserialize(self, data):
@@ -102,6 +110,7 @@ class Pet(db.Model):
             self.name = data["name"]
             self.category = data["category"]
             self.available = data["available"]
+            self.gender = getattr(Gender, data['gender'])   # create enum from string
         except KeyError as error:
             raise DataValidationError("Invalid pet: missing " + error.args[0])
         except TypeError as error:
@@ -160,7 +169,6 @@ class Pet(db.Model):
 
     @classmethod
     def find_by_availability(cls, available=True):
-        """ Query that finds Pets by their availability """
         """ Returns all Pets by their availability
 
         Args:
@@ -168,3 +176,13 @@ class Pet(db.Model):
         """
         logger.info("Processing available query for %s ...", available)
         return cls.query.filter(cls.available == available)
+
+    @classmethod
+    def find_by_gender(cls, gender=Gender.Unknown):
+        """ Returns all Pets by their Gender
+
+        Args:
+            Gender (enum): Options are ['Male', 'Female', 'Unknown']
+        """
+        logger.info("Processing gender query for %s ...", gender.name)
+        return cls.query.filter(cls.gender == gender)
