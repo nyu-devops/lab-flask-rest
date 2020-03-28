@@ -1,0 +1,17 @@
+{
+	"name": "Python 3 & PostgreSQL",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"extensions": [
+		"VisualVisualStudioExptTeam.vscodeintellicodeStudio",
+		"ms-python.python",
+    "wholroyd.jinja",
+		"cstrap.flask-snippets",
+		"yzhang.markdown-all-in-one",
+		"hnw.vscode-auto-open-markdown-preview",
+		"donjayamanne.githistory",
+    "bbenoist.vagrant"
+	],
+	"forwardPorts": [5000]
+}

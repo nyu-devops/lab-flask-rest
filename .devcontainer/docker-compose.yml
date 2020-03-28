@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    hostname: nyu
+    ports:
+      - 5000:5000
+    volumes:
+      - ~/.gitconfig:/devops/.gitconfig
+      - ..:/workspace
+    command: sleep infinity
+    environment:
+      DATABASE_URI: "postgres://postgres:postgres@postgres:5432/postgres"
+      FASK_APP: services:app
+    networks:
+      - dev
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:alpine
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dev
+
+volumes:
+  postgres_data:
+
+networks:
+  dev:

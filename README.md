@@ -1,6 +1,6 @@
 # lab-flask-rest
 
-NYU DevOps lab showing a very simple REST API all on one Python module `app.py`
+NYU DevOps lab showing a best practice REST API complete with unit tests.
 
 ## Introduction
 
@@ -29,16 +29,38 @@ Then all you have to do is clone this repo and invoke vagrant:
 ```
 
 You can also automatically set the environment variable FLASK_APP using a `.env` file.
-There is an example in this repo called `.env-example` that you can simply copy.
+There is an example in this repo called `dot-env-example` that you can simply copy.
 
 ```sh
-    cp .env .env-example
+    cp dot-env-example .env
 ```
 
 The `.env` file will be loaded when you do `flask run` so that you don't have to specify
 any environment variables.
 
-## Alternate install using local Python
+## Alternate install using VSCode and Docker
+
+You can also develop in Docker containers using VSCode. This project contains a `.devcontainer` folder that will set up a Docker environment in VSCode for you. You will need the following:
+
+- Docker Desktop for [Mac](https://docs.docker.com/docker-for-mac/install/) or [Windows](https://docs.docker.com/docker-for-windows/install/)
+- Microsoft Visual Studio Code ([VSCode](https://code.visualstudio.com/download))
+- [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) VSCode Extension
+
+It is a good idea to add VSCode to your path so that you can invoke it from the command line. To do this, open VSCode and type `Shift+Command+P` on Mac or `Shift+Ctrl+P` on Windows to open the command palete and then search for "shell" and select the option **Shell Command: Install 'code' command in Path**. This will install VSCode in your path.
+
+Then you can start your development environment up with:
+
+```bash
+    git clone https://github.com/nyu-devops/lab-flask-rest.git
+    cd lab-flask-rest
+    code .
+```
+
+The first time it will build the Docker image but after that it will just create a container and place you inside of it in your `/workspace` folder which actually contains the repo shared from your computer. It will also install all of the VSCode extensions needed for Python development.
+
+If it does not automatically pronot you to open the project in a container, you can select the green icon at the bottom left of your VSCode UI and select: **Remote Containers: Reopen in Container**.
+
+## Alternate manual install using local Python
 
 If you have Python 3 installed on your computer you can make a virtual environment and run the code locally with:
 
@@ -49,20 +71,22 @@ If you have Python 3 installed on your computer you can make a virtual environme
     FLASK_APP=service:app flask run
 ```
 
+You will also need Docker on your computer to run a container for the database.
+
 ## Manually running the Tests
 
-Run the tests using `nose`
+Run the tests using `nosetests`
 
 ```bash
-    nosetests
+  $ nosetests --with-spec --spec-color
 ```
 
-**Nose** is configured to automatically include the flags `--with-spec --spec-color` so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red. It also has `--with-coverage` specified so that code coverage is included in the tests.
+**Notes:** the parameter flags `--with-spec --spec-color` add color so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red. The flag `--with-coverage` is automatcially specified in the `setup.cfg` file so that code coverage is included in the tests.
 
 The Code Coverage tool runs with `nosetests` so to see how well your test cases exercise your code just run the report:
 
 ```bash
-    coverage report -m
+  $ coverage report -m
 ```
 
 This is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
@@ -70,22 +94,24 @@ This is particularly useful because it reports the line numbers for the code tha
 To run the service use `flask run` (Press Ctrl+C to exit):
 
 ```bash
-    FLASK_APP=service:app flask run -h 0.0.0.0
+  $ FLASK_APP=service:app flask run -h 0.0.0.0
 ```
 
 You must pass the parameters `-h 0.0.0.0` to have it listed on all network adapters to that the post can be forwarded by `vagrant` to your host computer so that you can open the web page in a local browser at: http://localhost:5000
 
-When you are done, you can exit and shut down the vm with:
+## Vagrant shutdown
+
+If you are using Vagrant and VirtualBox, when you are done, you should exit the virtual machine and shut down the vm with:
 
 ```bash
-    exit
-    vagrant halt
+ $ exit
+ $ vagrant halt
 ```
 
 If the VM is no longer needed you can remove it with:
 
 ```bash
-    vagrant destroy
+  $ vagrant destroy
 ```
 
 This repo is part of the DevOps course CSCI-GA.2820-001/002 at NYU taught by John Rofrano.

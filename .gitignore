@@ -4,6 +4,8 @@ Thumbs.db
 
 # VS Code
 .vscode/
+.noseids
+.sonarlint/
 
 # Vagrant
 .vagrant

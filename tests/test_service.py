@@ -26,7 +26,7 @@ Test cases can be run with the following:
 
 import os
 import logging
-from unittest import TestCase
+import unittest
 from unittest.mock import MagicMock, patch
 from flask_api import status  # HTTP Status Codes
 from service.models import db
@@ -41,7 +41,7 @@ DATABASE_URI = os.getenv(
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class TestPetServer(TestCase):
+class TestPetServer(unittest.TestCase):
     """ Pet Server Tests """
 
     @classmethod

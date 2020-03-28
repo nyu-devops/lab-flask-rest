@@ -23,9 +23,9 @@ While debugging just these tests it's convinient to use this:
     nosetests --stop tests/test_pets.py:TestPetModel
 
 """
+import os
 import logging
 import unittest
-import os
 from werkzeug.exceptions import NotFound
 from service.models import Pet, Gender, DataValidationError, db
 from service import app

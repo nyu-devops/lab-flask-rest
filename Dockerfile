@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install -U pip && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY docker-compose.yml config.py manage.py ./
+COPY config.py ./
 COPY service ./service
 
 # Expose any ports the app is expecting in the environment
