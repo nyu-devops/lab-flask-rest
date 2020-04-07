@@ -9,7 +9,8 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ~/.gitconfig:/devops/.gitconfig
+      - ~/.gitconfig:/home/devops/.gitconfig
+      - ~/.ssh/:/home/devops/.ssh/
       - ..:/workspace
     command: sleep infinity
     environment:
