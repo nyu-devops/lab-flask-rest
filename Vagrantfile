@@ -22,7 +22,7 @@ Vagrant.configure(2) do |config|
   # Mac users can comment this next line out but
   # Windows users need to change the permission of files and directories
   # so that nosetests runs without extra arguments.
-  config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
+  config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=755,fmode=644"]
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -61,11 +61,13 @@ Vagrant.configure(2) do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install -y git python3 python3-pip python3-venv
+    apt-get install -y git zip tree python3 python3-pip python3-venv
     apt-get -y autoremove
-    # Install app dependencies
-    cd /vagrant
-    pip3 install -r requirements.txt
+    # Create a Python3 Virtual Environment and Activate it in .profile
+    sudo -H -u vagrant sh -c 'python3 -m venv ~/venv'
+    sudo -H -u vagrant sh -c 'echo ". ~/venv/bin/activate" >> ~/.profile'
+    # Install app dependencies as vagrant user
+    sudo -H -u vagrant sh -c '. ~/venv/bin/activate && cd /vagrant && pip install -r requirements.txt'
   SHELL
 
   ######################################################################
