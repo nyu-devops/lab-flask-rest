@@ -28,6 +28,7 @@ import os
 import logging
 import unittest
 from unittest.mock import MagicMock, patch
+from urllib.parse import quote_plus
 from flask_api import status  # HTTP Status Codes
 from service.models import db
 from service.service import app, init_db
@@ -187,7 +188,7 @@ class TestPetServer(unittest.TestCase):
         pets = self._create_pets(10)
         test_category = pets[0].category
         category_pets = [pet for pet in pets if pet.category == test_category]
-        resp = self.app.get("/pets", query_string="category={}".format(test_category))
+        resp = self.app.get("/pets", query_string="category={}".format(quote_plus(test_category)))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), len(category_pets))
