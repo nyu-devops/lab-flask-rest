@@ -115,7 +115,7 @@ class Pet(db.Model):
             raise DataValidationError("Invalid pet: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid pet: body of request contained" "bad or no data"
+                "Invalid pet: body of request contained bad or no data"
             )
         return self
 
