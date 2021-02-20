@@ -31,7 +31,7 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
 from flask_api import status  # HTTP Status Codes
 from service.models import db
-from service.service import app, init_db
+from service.routes import app, init_db
 from .factories import PetFactory
 
 # DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
