@@ -38,6 +38,18 @@ There is an example in this repo called `dot-env-example` that you can simply co
 The `.env` file will be loaded when you do `flask run` so that you don't have to specify
 any environment variables.
 
+## Alternate using Vagrant and Docker
+
+You can also use Docker as a provider instead of VirtualBox. This is useful for owners of Apple M1 Silicon Macs which cannot run VirtualBox because they have a CPU based on ARM architecture instead of Intel.
+
+Just add `--provider docker` to the `vagrant up` command like this:
+
+```sh
+vagrant up --provider docker
+```
+
+This will use a Docker container instead of a Virtual Machine (VM).
+
 ## Alternate install using VSCode and Docker
 
 You can also develop in Docker containers using VSCode. This project contains a `.devcontainer` folder that will set up a Docker environment in VSCode for you. You will need the following:

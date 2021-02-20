@@ -8,7 +8,8 @@
 Vagrant.configure(2) do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/bionic64"
+  #config.vm.box = "ubuntu/bionic64"
+  config.vm.box = "bento/ubuntu-20.04"
   config.vm.hostname = "flask"
 
   # accessing "localhost:8080" will access port 80 on the guest machine.
@@ -37,6 +38,17 @@ Vagrant.configure(2) do |config|
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
   end
 
+  ############################################################
+  # Provider for Docker
+  ############################################################
+  config.vm.provider :docker do |docker, override|
+    override.vm.box = nil
+    docker.image = "rofrano/vagrant:ubuntu"
+    docker.remains_running = true
+    docker.has_ssh = true
+    docker.create_args = ['--privileged']
+  end
+  
   # Copy your .gitconfig file so that your git credentials are correct
   if File.exists?(File.expand_path("~/.gitconfig"))
     config.vm.provision "file", source: "~/.gitconfig", destination: "~/.gitconfig"
