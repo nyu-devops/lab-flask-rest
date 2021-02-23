@@ -25,10 +25,9 @@ Vagrant.configure(2) do |config|
   # so that nosetests runs without extra arguments.
   config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=755,fmode=644"]
 
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
+  ############################################################
+  # Provider for VirtuaBox on Intel
+  ############################################################
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
     vb.memory = "512"
@@ -39,14 +38,15 @@ Vagrant.configure(2) do |config|
   end
 
   ############################################################
-  # Provider for Docker
+  # Provider for Docker on Intel or ARM
   ############################################################
   config.vm.provider :docker do |docker, override|
     override.vm.box = nil
-    docker.image = "rofrano/vagrant:ubuntu"
+    docker.image = "rofrano/vagrant-provider:ubuntu"
     docker.remains_running = true
     docker.has_ssh = true
-    docker.create_args = ['--privileged']
+    docker.privileged = true
+    # docker.create_args = ['--platform=linux/arm64']
   end
   
   # Copy your .gitconfig file so that your git credentials are correct
