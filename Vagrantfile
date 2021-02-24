@@ -46,6 +46,7 @@ Vagrant.configure(2) do |config|
     docker.remains_running = true
     docker.has_ssh = true
     docker.privileged = true
+    docker.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
     # docker.create_args = ['--platform=linux/arm64']
   end
   
