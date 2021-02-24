@@ -1,6 +1,9 @@
-FROM python:3.7-slim
+FROM python:3.8-slim
 
 WORKDIR /app
+
+# Add PostgreSQL library to build driver
+RUN apt-get update && apt-get install -y libpq-dev
 
 COPY requirements.txt .
 RUN pip install -U pip && \
