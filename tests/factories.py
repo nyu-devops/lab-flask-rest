@@ -19,6 +19,7 @@ import factory
 from factory.fuzzy import FuzzyChoice
 from service.models import Pet, Gender
 
+
 class PetFactory(factory.Factory):
     """ Creates fake pets that you don't have to feed """
 

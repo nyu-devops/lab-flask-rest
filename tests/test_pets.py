@@ -43,24 +43,31 @@ class TestPetModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """ These run once per Test suite """
-        app.config['TESTING'] = True
-        app.config['DEBUG'] = False
+        """ This runs once before the entire test suite """
+        app.config["TESTING"] = True
+        app.config["DEBUG"] = False
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         Pet.init_db(app)
 
     @classmethod
     def tearDownClass(cls):
+        """ This runs once after the entire test suite """
         pass
 
     def setUp(self):
+        """ This runs before each test """
         db.drop_all()  # clean up the last tests
         db.create_all()  # make our sqlalchemy tables
 
     def tearDown(self):
+        """ This runs after each test """
         db.session.remove()
         db.drop_all()
+
+    ######################################################################
+    #  T E S T   C A S E S
+    ######################################################################
 
     def test_create_a_pet(self):
         """ Create a pet and assert that it exists """
@@ -135,7 +142,13 @@ class TestPetModel(unittest.TestCase):
 
     def test_deserialize_a_pet(self):
         """ Test deserialization of a Pet """
-        data = {"id": 1, "name": "kitty", "category": "cat", "available": True, "gender": "Female"}
+        data = {
+            "id": 1,
+            "name": "kitty",
+            "category": "cat",
+            "available": True,
+            "gender": "Female",
+        }
         pet = Pet()
         pet.deserialize(data)
         self.assertNotEqual(pet, None)
@@ -207,7 +220,9 @@ class TestPetModel(unittest.TestCase):
     def test_find_by_gender(self):
         """ Find Pets by Category """
         Pet(name="fido", category="dog", available=True, gender=Gender.Male).create()
-        Pet(name="kitty", category="cat", available=False, gender=Gender.Female).create()
+        Pet(
+            name="kitty", category="cat", available=False, gender=Gender.Female
+        ).create()
         Pet(name="fifi", category="dog", available=True, gender=Gender.Male).create()
         pets = Pet.find_by_gender(Gender.Female)
         pet_list = [pet for pet in pets]

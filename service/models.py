@@ -37,15 +37,20 @@ logger = logging.getLogger("flask.app")
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
 
+
 class DataValidationError(Exception):
     """ Used for an data validation errors when deserializing """
+
     pass
+
 
 class Gender(Enum):
     """ Enumeration of valid Pet Genders """
+
     Male = 0
     Female = 1
     Unknown = 3
+
 
 class Pet(db.Model):
     """
@@ -62,7 +67,9 @@ class Pet(db.Model):
     name = db.Column(db.String(63), nullable=False)
     category = db.Column(db.String(63), nullable=False)
     available = db.Column(db.Boolean(), nullable=False, default=False)
-    gender = db.Column(db.Enum(Gender), nullable=False, server_default=(Gender.Unknown.name))
+    gender = db.Column(
+        db.Enum(Gender), nullable=False, server_default=(Gender.Unknown.name)
+    )
 
     def __repr__(self):
         return "<Pet %r id=[%s]>" % (self.name, self.id)
@@ -96,7 +103,7 @@ class Pet(db.Model):
             "name": self.name,
             "category": self.category,
             "available": self.available,
-            "gender": self.gender.name, # convert enum to string
+            "gender": self.gender.name,  # convert enum to string
         }
 
     def deserialize(self, data):
@@ -110,7 +117,7 @@ class Pet(db.Model):
             self.name = data["name"]
             self.category = data["category"]
             self.available = data["available"]
-            self.gender = getattr(Gender, data['gender'])   # create enum from string
+            self.gender = getattr(Gender, data["gender"])  # create enum from string
         except KeyError as error:
             raise DataValidationError("Invalid pet: missing " + error.args[0])
         except TypeError as error:
@@ -149,7 +156,7 @@ class Pet(db.Model):
 
     @classmethod
     def find_by_name(cls, name):
-        """ Returns all Pets with the given name
+        """Returns all Pets with the given name
 
         Args:
             name (string): the name of the Pets you want to match
@@ -159,7 +166,7 @@ class Pet(db.Model):
 
     @classmethod
     def find_by_category(cls, category):
-        """ Returns all of the Pets in a category
+        """Returns all of the Pets in a category
 
         Args:
             category (string): the category of the Pets you want to match
@@ -169,7 +176,7 @@ class Pet(db.Model):
 
     @classmethod
     def find_by_availability(cls, available=True):
-        """ Returns all Pets by their availability
+        """Returns all Pets by their availability
 
         Args:
             available (boolean): True for pets that are available
@@ -179,7 +186,7 @@ class Pet(db.Model):
 
     @classmethod
     def find_by_gender(cls, gender=Gender.Unknown):
-        """ Returns all Pets by their Gender
+        """Returns all Pets by their Gender
 
         Args:
             Gender (enum): Options are ['Male', 'Female', 'Unknown']
