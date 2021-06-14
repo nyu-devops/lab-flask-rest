@@ -27,9 +27,8 @@ Test cases can be run with the following:
 import os
 import logging
 import unittest
-from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
-from flask_api import status  # HTTP Status Codes
+from service import status  # HTTP Status Codes
 from service.models import db
 from service.routes import app, init_db
 from .factories import PetFactory
@@ -197,17 +196,3 @@ class TestPetServer(unittest.TestCase):
         # check the data just to be sure
         for pet in data:
             self.assertEqual(pet["category"], test_category)
-
-    # @patch('service.models.Pet.find_by_name')
-    # def test_bad_request(self, bad_request_mock):
-    #     """ Test a Bad Request error from Find By Name """
-    #     bad_request_mock.side_effect = DataValidationError()
-    #     resp = self.app.get('/pets', query_string='name=fido')
-    #     self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-    #
-    # @patch('service.models.Pet.find_by_name')
-    # def test_mock_search_data(self, pet_find_mock):
-    #     """ Test showing how to mock data """
-    #     pet_find_mock.return_value = [MagicMock(serialize=lambda: {'name': 'fido'})]
-    #     resp = self.app.get('/pets', query_string='name=fido')
-    #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
