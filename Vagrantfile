@@ -8,8 +8,7 @@
 Vagrant.configure(2) do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  #config.vm.box = "ubuntu/bionic64"
-  config.vm.box = "bento/ubuntu-20.04"
+  config.vm.box = "ubuntu/focal64"
   config.vm.hostname = "ubuntu"
 
   # accessing "localhost:8080" will access port 80 on the guest machine.
@@ -46,9 +45,9 @@ Vagrant.configure(2) do |config|
     docker.remains_running = true
     docker.has_ssh = true
     docker.privileged = true
-    docker.create_args = ["-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
-    # Uncomment to force arm64 for testing images
-    # docker.create_args = ["--platform=linux/arm64", "-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro"]
+    docker.volumes = ["/sys/fs/cgroup:/sys/fs/cgroup:ro"]
+    # Uncomment to force arm64 for testing images on Intel
+    # docker.create_args = ["--platform=linux/arm64"]     
   end
 
   ######################################################################
@@ -74,6 +73,9 @@ Vagrant.configure(2) do |config|
   # Create a Python 3 development environment
   ######################################################################
   config.vm.provision "shell", inline: <<-SHELL
+    echo "****************************************"
+    echo " INSTALLING PYTHON 3 ENVIRONMENT..."
+    echo "****************************************"
     # Install Python 3 and dev tools 
     apt-get update
     apt-get install -y git vim tree python3 python3-pip python3-venv
