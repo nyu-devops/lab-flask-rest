@@ -9,7 +9,7 @@ The resource model is persistenced using SQLAlchemy to keep the application simp
 
 This projects purpose is to show the correct API and return codes that should be used for a REST API. Everything is contained ina single
 
-## Prerequisite Installation using Vagrant VM
+## Prerequisite Installation for Intel Mac & PC
 
 The easiest way to use this lab is with **Vagrant** and **VirtualBox**. if you don't have this software the first step is down download and install it.
 
@@ -38,9 +38,9 @@ There is an example in this repo called `dot-env-example` that you can simply co
 The `.env` file will be loaded when you do `flask run` so that you don't have to specify
 any environment variables.
 
-## Alternate using Vagrant and Docker
+## Alternate for M1 Macs using Vagrant and Docker
 
-You can also use Docker as a provider instead of VirtualBox. This is useful for owners of Apple M1 Silicon Macs which cannot run VirtualBox because they have a CPU based on ARM architecture instead of Intel.
+You can also use [Docker Desktop for Apple Silicon](https://docs.docker.com/docker-for-mac/apple-silicon/) as a provider instead of VirtualBox. This is useful for owners of Apple M1 Silicon Macs which cannot run VirtualBox because they have a CPU based on ARM architecture instead of Intel.
 
 Just add `--provider docker` to the `vagrant up` command like this:
 
@@ -48,7 +48,7 @@ Just add `--provider docker` to the `vagrant up` command like this:
 vagrant up --provider docker
 ```
 
-This will use a Docker container instead of a Virtual Machine (VM).
+This will use a Docker container instead of a Virtual Machine (VM). Of course Intel Macs and Windows PCs can use this as well. Just install the appropreate Docker Desktopo build.
 
 ## Alternate install using VSCode and Docker
 
