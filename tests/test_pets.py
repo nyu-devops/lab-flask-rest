@@ -159,7 +159,7 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(pet.gender, Gender.Female)
 
     def test_deserialize_missing_data(self):
-        """ Test deserialization of a Pet """
+        """ Test deserialization of a Pet with missing data """
         data = {"id": 1, "name": "kitty", "category": "cat"}
         pet = Pet()
         self.assertRaises(DataValidationError, pet.deserialize, data)
@@ -204,7 +204,7 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(pets[0].available, False)
 
     def test_find_by_availability(self):
-        """ Find Pets by Category """
+        """ Find Pets by Availability """
         Pet(name="fido", category="dog", available=True).create()
         Pet(name="kitty", category="cat", available=False).create()
         Pet(name="fifi", category="dog", available=True).create()
@@ -218,7 +218,7 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(len(pet_list), 2)
 
     def test_find_by_gender(self):
-        """ Find Pets by Category """
+        """ Find Pets by Gender """
         Pet(name="fido", category="dog", available=True, gender=Gender.Male).create()
         Pet(
             name="kitty", category="cat", available=False, gender=Gender.Female
