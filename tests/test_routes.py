@@ -38,6 +38,8 @@ DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres"
 )
 
+BASE_URL = "/pets"
+
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
@@ -73,7 +75,7 @@ class TestPetServer(unittest.TestCase):
         for _ in range(count):
             test_pet = PetFactory()
             resp = self.app.post(
-                "/pets", json=test_pet.serialize(), content_type="application/json"
+                BASE_URL, json=test_pet.serialize(), content_type="application/json"
             )
             self.assertEqual(
                 resp.status_code, status.HTTP_201_CREATED, "Could not create test pet"
@@ -93,7 +95,7 @@ class TestPetServer(unittest.TestCase):
     def test_get_pet_list(self):
         """ Get a list of Pets """
         self._create_pets(5)
-        resp = self.app.get("/pets")
+        resp = self.app.get(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 5)
@@ -103,7 +105,7 @@ class TestPetServer(unittest.TestCase):
         # get the id of a pet
         test_pet = self._create_pets(1)[0]
         resp = self.app.get(
-            "/pets/{}".format(test_pet.id), content_type="application/json"
+            "{0}/{1}".format(BASE_URL, test_pet.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -111,7 +113,7 @@ class TestPetServer(unittest.TestCase):
 
     def test_get_pet_not_found(self):
         """ Get a Pet thats not found """
-        resp = self.app.get("/pets/0")
+        resp = self.app.get("{}/0".format(BASE_URL))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_pet(self):
@@ -119,7 +121,7 @@ class TestPetServer(unittest.TestCase):
         test_pet = PetFactory()
         logging.debug(test_pet)
         resp = self.app.post(
-            "/pets", json=test_pet.serialize(), content_type="application/json"
+            BASE_URL, json=test_pet.serialize(), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         # Make sure location header is set
@@ -149,13 +151,13 @@ class TestPetServer(unittest.TestCase):
     def test_create_pet_no_data(self):
         """ Create a Pet with missing data """
         resp = self.app.post(
-            "/pets", json={}, content_type="application/json"
+            BASE_URL, json={}, content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_pet_no_content_type(self):
         """ Create a Pet with no content type """
-        resp = self.app.post("/pets")
+        resp = self.app.post(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_update_pet(self):
@@ -163,7 +165,7 @@ class TestPetServer(unittest.TestCase):
         # create a pet to update
         test_pet = PetFactory()
         resp = self.app.post(
-            "/pets", json=test_pet.serialize(), content_type="application/json"
+            BASE_URL, json=test_pet.serialize(), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
@@ -172,7 +174,7 @@ class TestPetServer(unittest.TestCase):
         logging.debug(new_pet)
         new_pet["category"] = "unknown"
         resp = self.app.put(
-            "/pets/{}".format(new_pet["id"]),
+            "{0}/{1}".format(BASE_URL, new_pet["id"]),
             json=new_pet,
             content_type="application/json",
         )
@@ -184,13 +186,13 @@ class TestPetServer(unittest.TestCase):
         """ Delete a Pet """
         test_pet = self._create_pets(1)[0]
         resp = self.app.delete(
-            "/pets/{}".format(test_pet.id), content_type="application/json"
+            "{0}/{1}".format(BASE_URL, test_pet.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(resp.data), 0)
         # make sure they are deleted
         resp = self.app.get(
-            "/pets/{}".format(test_pet.id), content_type="application/json"
+            "{}/{}".format(BASE_URL, test_pet.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -200,7 +202,7 @@ class TestPetServer(unittest.TestCase):
         test_category = pets[0].category
         category_pets = [pet for pet in pets if pet.category == test_category]
         resp = self.app.get(
-            "/pets", query_string="category={}".format(quote_plus(test_category))
+            BASE_URL, query_string="category={}".format(quote_plus(test_category))
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
