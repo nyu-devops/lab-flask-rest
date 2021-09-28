@@ -9,10 +9,12 @@
         "alexkrechik.cucumberautocomplete",
         "wholroyd.jinja",
 		"cstrap.flask-snippets",
-		"yzhang.markdown-all-in-one",
-		"hnw.vscode-auto-open-markdown-preview",
+        "yzhang.markdown-all-in-one",
+		"DavidAnson.vscode-markdownlint",
+		"bierner.github-markdown-preview",
 		"donjayamanne.githistory",
-        "bbenoist.vagrant"
+        "bbenoist.vagrant",
+		"github.vscode-pull-request-github"
 	],
 	"forwardPorts": [5000]
 }
