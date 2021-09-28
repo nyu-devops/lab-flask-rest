@@ -8,7 +8,8 @@
 Vagrant.configure(2) do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/focal64"
+  # config.vm.box = "ubuntu/focal64"
+  config.vm.box = "bento/ubuntu-21.04"
   config.vm.hostname = "ubuntu"
 
   # accessing "localhost:8080" will access port 80 on the guest machine.
@@ -29,8 +30,8 @@ Vagrant.configure(2) do |config|
   ############################################################
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
-    vb.memory = "512"
-    vb.cpus = 1
+    vb.memory = "1024"
+    vb.cpus = 2
     # Fixes some DNS issues on some networks
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
