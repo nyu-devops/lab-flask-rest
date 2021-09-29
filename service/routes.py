@@ -131,7 +131,7 @@ def update_pets(pet_id):
         raise NotFound("Pet with id '{}' was not found.".format(pet_id))
     pet.deserialize(request.get_json())
     pet.id = pet_id
-    pet.save()
+    pet.update()
     return make_response(jsonify(pet.serialize()), status.HTTP_200_OK)
 
 

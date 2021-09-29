@@ -102,10 +102,10 @@ class TestPetModel(unittest.TestCase):
         pet.create()
         logging.debug(pet)
         self.assertEqual(pet.id, 1)
-        # Change it an save it
+        # Change it an update it
         pet.category = "k9"
         original_id = pet.id
-        pet.save()
+        pet.update()
         self.assertEqual(pet.id, original_id)
         self.assertEqual(pet.category, "k9")
         # Fetch it back and make sure the id hasn't changed
@@ -176,7 +176,7 @@ class TestPetModel(unittest.TestCase):
         for pet in pets:
             pet.create()
         logging.debug(pets)
-        # make sure they got saved
+        # make sure they got updated
         self.assertEqual(len(Pet.all()), 3)
         # find the 2nd pet in the list
         pet = Pet.find(pets[1].id)
