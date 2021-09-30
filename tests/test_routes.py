@@ -155,6 +155,29 @@ class TestPetServer(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_pet_bad_available(self):
+        """ Create a Pet with bad available data """
+        test_pet = PetFactory()
+        logging.debug(test_pet)
+        # change available to a string
+        test_pet.available = "true"
+        resp = self.app.post(
+            BASE_URL, json=test_pet.serialize(), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_pet_bad_gender(self):
+        """ Create a Pet with bad available data """
+        pet = PetFactory()
+        logging.debug(pet)
+        # change gender to a bad string
+        test_pet = pet.serialize()
+        test_pet["gender"] = "male"    # wrong case
+        resp = self.app.post(
+            BASE_URL, json=test_pet, content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_create_pet_no_content_type(self):
         """ Create a Pet with no content type """
         resp = self.app.post(BASE_URL)
