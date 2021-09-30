@@ -30,6 +30,7 @@ available (boolean) - True for pets that are available for adoption
 """
 import logging
 from enum import Enum
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger("flask.app")
@@ -46,7 +47,6 @@ class DataValidationError(Exception):
 
 class Gender(Enum):
     """ Enumeration of valid Pet Genders """
-
     Male = 0
     Female = 1
     Unknown = 3
@@ -60,7 +60,7 @@ class Pet(db.Model):
     from us by SQLAlchemy's object relational mappings (ORM)
     """
 
-    app = None
+    app: Flask = None
 
     # Table Schema
     id = db.Column(db.Integer, primary_key=True)
@@ -71,7 +71,7 @@ class Pet(db.Model):
         db.Enum(Gender), nullable=False, server_default=(Gender.Unknown.name)
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Pet %r id=[%s]>" % (self.name, self.id)
 
     def create(self):
@@ -96,7 +96,7 @@ class Pet(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def serialize(self):
+    def serialize(self) -> dict:
         """ Serializes a Pet into a dictionary """
         return {
             "id": self.id,
@@ -106,7 +106,7 @@ class Pet(db.Model):
             "gender": self.gender.name,  # convert enum to string
         }
 
-    def deserialize(self, data):
+    def deserialize(self, data: dict):
         """
         Deserializes a Pet from a dictionary
 
@@ -116,8 +116,13 @@ class Pet(db.Model):
         try:
             self.name = data["name"]
             self.category = data["category"]
-            self.available = data["available"]
+            if isinstance(data["available"], bool):
+                self.available = data["available"]
+            else:
+                raise DataValidationError("Invalid type for boolean [available]: " + type(data["available"]))
             self.gender = getattr(Gender, data["gender"])  # create enum from string
+        except AttributeError as error:
+            raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
             raise DataValidationError("Invalid pet: missing " + error.args[0])
         except TypeError as error:
@@ -127,7 +132,7 @@ class Pet(db.Model):
         return self
 
     @classmethod
-    def init_db(cls, app):
+    def init_db(cls, app: Flask):
         """ Initializes the database session """
         logger.info("Initializing database")
         cls.app = app
@@ -137,25 +142,25 @@ class Pet(db.Model):
         db.create_all()  # make our sqlalchemy tables
 
     @classmethod
-    def all(cls):
+    def all(cls) -> list:
         """ Returns all of the Pets in the database """
         logger.info("Processing all Pets")
         return cls.query.all()
 
     @classmethod
-    def find(cls, pet_id):
+    def find(cls, pet_id: int):
         """ Finds a Pet by it's ID """
         logger.info("Processing lookup for id %s ...", pet_id)
         return cls.query.get(pet_id)
 
     @classmethod
-    def find_or_404(cls, pet_id):
+    def find_or_404(cls, pet_id: int) -> list:
         """ Find a Pet by it's id """
         logger.info("Processing lookup or 404 for id %s ...", pet_id)
         return cls.query.get_or_404(pet_id)
 
     @classmethod
-    def find_by_name(cls, name):
+    def find_by_name(cls, name: str) -> list:
         """Returns all Pets with the given name
 
         Args:
@@ -165,7 +170,7 @@ class Pet(db.Model):
         return cls.query.filter(cls.name == name)
 
     @classmethod
-    def find_by_category(cls, category):
+    def find_by_category(cls, category: str) -> list:
         """Returns all of the Pets in a category
 
         Args:
@@ -175,7 +180,7 @@ class Pet(db.Model):
         return cls.query.filter(cls.category == category)
 
     @classmethod
-    def find_by_availability(cls, available=True):
+    def find_by_availability(cls, available: bool=True) -> list:
         """Returns all Pets by their availability
 
         Args:
@@ -185,7 +190,7 @@ class Pet(db.Model):
         return cls.query.filter(cls.available == available)
 
     @classmethod
-    def find_by_gender(cls, gender=Gender.Unknown):
+    def find_by_gender(cls, gender: Gender=Gender.Unknown) -> list:
         """Returns all Pets by their Gender
 
         Args:
