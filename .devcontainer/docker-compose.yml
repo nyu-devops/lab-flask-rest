@@ -1,3 +1,5 @@
+---
+# Python 3 with PostgreSQL
 version: "3"
 
 services:
@@ -9,13 +11,14 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ~/.gitconfig:/home/devops/.gitconfig
+      - ..:/app
       - ~/.ssh/:/home/devops/.ssh/
-      - ..:/workspace
+      - ~/.bluemix/:/home/devops/.bluemix/
+      - ~/.kube/:/home/devops/.kube/
     command: sleep infinity
     environment:
-      DATABASE_URI: "postgres://postgres:postgres@postgres:5432/postgres"
-      FASK_APP: services:app
+      FLASK_APP: service:app
+      DATABASE_URI: postgres://postgres:postgres@postgres:5432/postgres
     networks:
       - dev
     depends_on:
@@ -29,12 +32,12 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     networks:
       - dev
 
 volumes:
-  postgres_data:
+  postgres:
 
 networks:
   dev:

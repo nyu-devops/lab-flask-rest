@@ -1,20 +1,23 @@
 {
-	"name": "Python 3 & PostgreSQL",
+	"name": "Python 3 & PostgeSQL",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspace",
+	"workspaceFolder": "/app",
+	"remoteUser": "devops",
 	"extensions": [
 		"VisualVisualStudioExptTeam.vscodeintellicodeStudio",
 		"ms-python.python",
-        "alexkrechik.cucumberautocomplete",
-        "wholroyd.jinja",
+		"ms-python.vscode-pylance",
+    	"wholroyd.jinja",
 		"cstrap.flask-snippets",
-        "yzhang.markdown-all-in-one",
+		"yzhang.markdown-all-in-one",
 		"DavidAnson.vscode-markdownlint",
-		"bierner.github-markdown-preview",
+		"bierner.github-markdown-preview",        
 		"donjayamanne.githistory",
-        "bbenoist.vagrant",
-		"github.vscode-pull-request-github"
+		"redhat.vscode-yaml",
+		"bbenoist.vagrant",
+		"sonarsource.sonarlint-vscode"
 	],
-	"forwardPorts": [5000]
+	"forwardPorts": [5000],
+	//"postCreateCommand": "sudo pip install -U pip wheel && sudo pip install -r requirements.txt"
 }
