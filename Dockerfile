@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y libpq-dev
 
 COPY requirements.txt .
-RUN pip install -U pip && \
+RUN pip install -U pip wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY config.py ./
