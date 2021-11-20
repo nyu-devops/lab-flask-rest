@@ -1,6 +1,6 @@
 # lab-flask-rest
 
-[![Build Status](https://github.com/nyu-devops/lab-flask-rest/actions/workflows/workflow.yaml/badge.svg)](https://github.com/nyu-devops/lab-flask-rest/actions)
+[![Build Status](https://github.com/nyu-devops/lab-flask-rest/actions/workflows/workflow.yml/badge.svg)](https://github.com/nyu-devops/lab-flask-rest/actions)
 
 NYU DevOps lab showing a best practice REST API complete with unit tests.
 
