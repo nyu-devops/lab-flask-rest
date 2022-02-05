@@ -1,23 +1,25 @@
 {
-	"name": "Python 3 & PostgeSQL",
+	"name": "Python 3 & Redis",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/app",
 	"remoteUser": "devops",
 	"extensions": [
-		"VisualVisualStudioExptTeam.vscodeintellicodeStudio",
+		"VisualStudioExptTeam.vscodeintellicode",
 		"ms-python.python",
 		"ms-python.vscode-pylance",
-    	"wholroyd.jinja",
-		"cstrap.flask-snippets",
 		"yzhang.markdown-all-in-one",
+		"bierner.github-markdown-preview",
+		"hnw.vscode-auto-open-markdown-preview",
 		"DavidAnson.vscode-markdownlint",
-		"bierner.github-markdown-preview",        
+		"cstrap.flask-snippets",
 		"donjayamanne.githistory",
+		"GitHub.vscode-pull-request-github",
+		"hbenl.vscode-test-explorer",
+		"njpwerner.autodocstring",
 		"redhat.vscode-yaml",
-		"bbenoist.vagrant",
-		"sonarsource.sonarlint-vscode"
+		"streetsidesoftware.code-spell-checker",
+		"wholroyd.jinja"
 	],
-	"forwardPorts": [5000],
-	//"postCreateCommand": "sudo pip install -U pip wheel && sudo pip install -r requirements.txt"
+	"postCreateCommand": "sudo pip install -r requirements.txt"
 }

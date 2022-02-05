@@ -1,5 +1,5 @@
 ---
-# Python 3 with PostgreSQL
+# Python 3 with Redis
 version: "3"
 
 services:
@@ -11,31 +11,28 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ~/.ssh/:/home/devops/.ssh/
+      # - ~/.ssh/:/home/devops/.ssh/
       - ..:/app
     command: sleep infinity
     environment:
-      FLASK_APP: service:app
-      DATABASE_URI: postgresql://postgres:postgres@postgres:5432/postgres
+      # FLASK_APP: service:app
+      DATABASE_URI: redis://redis:6379/0
     networks:
       - dev
     depends_on:
-      - postgres
+      - redis
 
-  postgres:
-    image: postgres:alpine
-    restart: always
+  redis:
+    image: redis:6-alpine
     ports:
-      - 5432:5432
-    environment:
-      POSTGRES_PASSWORD: postgres
+      - 6379:6379
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - redis:/data
     networks:
       - dev
 
 volumes:
-  postgres:
+  redis:
 
 networks:
   dev:
