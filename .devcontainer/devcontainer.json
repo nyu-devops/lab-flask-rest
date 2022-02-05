@@ -18,7 +18,6 @@
 		"hbenl.vscode-test-explorer",
 		"njpwerner.autodocstring",
 		"redhat.vscode-yaml",
-		"streetsidesoftware.code-spell-checker",
 		"wholroyd.jinja"
 	],
 	"postCreateCommand": "sudo pip install -r requirements.txt"
