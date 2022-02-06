@@ -28,16 +28,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # - name: Setup Redis v6
-      #   uses: shogo82148/actions-setup-redis@v1
-      #   with:
-      #     redis-version: '6.x'
-      # - run: redis-cli ping      
-
-      - name: Start Redis
-        uses: supercharge/redis-github-action@1.4.0
+      - name: Setup Redis v6
+        uses: shogo82148/actions-setup-redis@v1
         with:
-          redis-version: 6
+          redis-version: '6.x'
+      - run: redis-cli ping      
 
       - name: Install Python dependencies
         run: |
