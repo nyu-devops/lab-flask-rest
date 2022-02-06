@@ -18,15 +18,13 @@ jobs:
         image: redis:6-alpine
         ports:
           - 6379:6379
-        options: >-
-          --health-cmd redis-cli ping
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Check if Redis is ready
+        run: docker exec -it redis redis-cli ping
 
       - name: Install Python dependencies
         run: |
