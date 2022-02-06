@@ -1,131 +1,118 @@
 # lab-flask-rest
 
 [![Build Status](https://github.com/nyu-devops/lab-flask-rest/actions/workflows/workflow.yml/badge.svg)](https://github.com/nyu-devops/lab-flask-rest/actions)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-NYU DevOps lab showing a best practice REST API complete with unit tests.
+**NYU DevOps and Agile Methodologies** lab showing a best practice for creating REST API, complete with unit tests.
 
 ## Introduction
 
-This lab demonstrates how to create a simple REST service using Python Flask and SQLite.
-The resource model is persistenced using SQLAlchemy to keep the application simple. SQLAlchemy is an Object Relational Mapper (ORM) that will allow you to work with classes instead of database records.
+This lab demonstrates how to create a simple RESTful service using **Python Flask** and **Redis**. It does not use any other frameworks because it is intended to show how to build a REST API manually following good RESTful practices.
 
-This projects purpose is to show the correct API and return codes that should be used for a REST API. Everything is contained ina single
+The data is persisted using Redis to keep the application simple. Redis was chosen because the application keeps track of counters and their values and Redis is a memcached database that is perfect for persisting key/value pairs. Using a relational database like PostgreSQL or MySQL, or using a NoSQL document database like MongoDB or CouchDB would have been overkill.
 
-## Prerequisite Installation for Intel Mac & PC
+This project's purpose is to show how to construct the proper endpoints and return codes that should be used to make a service RESTful. Everything is contained in a single `app.py` module for simplicity. Future labs will build more complex services in Python packages. For now, just *bask in the mindfulness of app.py's simplicity*.
 
-The easiest way to use this lab is with **Vagrant** and **VirtualBox**. if you don't have this software the first step is down download and install it.
+## Software prerequisites
 
-Download [VirtualBox](https://www.virtualbox.org/)
+Check to make sure that you have the [Prerequisite software installed](docs/software-prerequisites.md) before starting this lab. Then all you need to do is:
 
-Download [Vagrant](https://www.vagrantup.com/)
+## Bring up the development environment
 
-Then all you have to do is clone this repo and invoke vagrant:
-
-```bash
-    git clone https://github.com/nyu-devops/lab-flask-rest.git
-    cd lab-flask-rest
-    vagrant up
-    vagrant ssh
-    cd /vagrant
-    FLASK_APP=service:app flask run -h 0.0.0.0
-```
-
-You can also automatically set the environment variable FLASK_APP using a `.env` file.
-There is an example in this repo called `dot-env-example` that you can simply copy.
-
-```sh
-    cp dot-env-example .env
-```
-
-The `.env` file will be loaded when you do `flask run` so that you don't have to specify
-any environment variables.
-
-## Alternate for M1 Macs using Vagrant and Docker
-
-You can also use [Docker Desktop for Apple Silicon](https://docs.docker.com/docker-for-mac/apple-silicon/) as a provider instead of VirtualBox. This is useful for owners of Apple M1 Silicon Macs which cannot run VirtualBox because they have a CPU based on ARM architecture instead of Intel.
-
-Just add `--provider docker` to the `vagrant up` command like this:
-
-```sh
-vagrant up --provider docker
-```
-
-This will use a Docker container instead of a Virtual Machine (VM). Of course Intel Macs and Windows PCs can use this as well. Just install the appropreate Docker Desktopo build.
-
-## Alternate install using VSCode and Docker
-
-You can also develop in Docker containers using VSCode. This project contains a `.devcontainer` folder that will set up a Docker environment in VSCode for you. You will need the following:
-
-- Docker Desktop for [Mac](https://docs.docker.com/docker-for-mac/install/) or [Windows](https://docs.docker.com/docker-for-windows/install/)
-- Microsoft Visual Studio Code ([VSCode](https://code.visualstudio.com/download))
-- [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) VSCode Extension
-
-It is a good idea to add VSCode to your path so that you can invoke it from the command line. To do this, open VSCode and type `Shift+Command+P` on Mac or `Shift+Ctrl+P` on Windows to open the command palete and then search for "shell" and select the option **Shell Command: Install 'code' command in Path**. This will install VSCode in your path.
-
-Then you can start your development environment up with:
+To bring up the development environment you should clone this repo, change into the repo directory, and then open Visual Studio Code using the `code .` command. VS Code will prompt you to reopen in a container and you should say **select** it. This will take a while the first time as it builds the Docker image and creates a container from it to develop in.
 
 ```bash
-    git clone https://github.com/nyu-devops/lab-flask-rest.git
-    cd lab-flask-rest
-    code .
+git clone https://github.com/nyu-devops/lab-flask-rest.git
+cd lab-flask-rest
+code .
 ```
 
-The first time it will build the Docker image but after that it will just create a container and place you inside of it in your `/workspace` folder which actually contains the repo shared from your computer. It will also install all of the VSCode extensions needed for Python development.
+Note that there is a period `.` after the `code` command. This tells Visual Studio Code to open the editor and load the current folder of files.
 
-If it does not automatically pronot you to open the project in a container, you can select the green icon at the bottom left of your VSCode UI and select: **Remote Containers: Reopen in Container**.
+The first time it will build the Docker image but after that it will just create a container and place you inside of it in your `/app` folder which actually contains the repo shared from your computer. It will also install all of the Visual Studio Code extensions needed for Python development.
 
-## Alternate manual install using local Python
+If it does not automatically prompt you to open the project in a container, you can select the green icon at the bottom left of your Visual Studio Code UI and select: **Remote Containers: Reopen in Container**.
 
-If you have Python 3 installed on your computer you can make a virtual environment and run the code locally with:
+Once the environment is loaded you should be placed at a `bash` prompt in the `/app` folder inside of the development container. This folder is mounted to the current working directory of your repository on your computer. This means that any file you edit while inside of the `/app` folder in the container is actually being edited on your computer. You can then commit your changes to `git` from either inside or outside of the container.
+
+## Make sure it all works
+
+While this lab is not about testing, it is always a good idea to include tests with any code that you write. The first thing you want to do is run the tests to make sure that your environment is working correctly. Then run the code.
+
+### Run the test suite
+
+Run the tests in a `bash` terminal using the following command:
 
 ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    FLASK_APP=service:app flask run
+nosetests
 ```
 
-You will also need Docker on your computer to run a container for the database.
+This will run the test suite and report your code coverage. If you are interested, the tests are in the `./tests` folder and their configuration is controlled by the `setup.cfg` and `.coveragerc` files. The code coverage is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
 
-## Manually running the Tests
+### Run the REST service
 
-Run the tests using `nosetests`
+To run the service, use the same `bash` terminal that you ran the tests in and use `flask run` (Press Ctrl+C to exit):
 
 ```bash
-  $ nosetests --with-spec --spec-color
+flask run -h 0.0.0.0 -p 8080
 ```
 
-**Notes:** the parameter flags `--with-spec --spec-color` add color so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red. The flag `--with-coverage` is automatcially specified in the `setup.cfg` file so that code coverage is included in the tests.
+You must pass the parameters `-h 0.0.0.0` to have it listed on all network adapters so that the nextwork port `8080` can be forwarded by `docker` to your host computer so that you can open the web page in a local browser at: http://localhost:8080
 
-The Code Coverage tool runs with `nosetests` so to see how well your test cases exercise your code just run the report:
+That's it! You should have a fully functioning REST API.
+
+## Make some REST calls
+
+With the service running, open a second `bash` terminal and issue the following `curl` commands:
+
+List all counters:
 
 ```bash
-  $ coverage report -m
+curl -i -X GET http://127.0.0.1:8080/counters
 ```
 
-This is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
-
-To run the service use `flask run` (Press Ctrl+C to exit):
+Create a counter:
 
 ```bash
-  $ FLASK_APP=service:app flask run -h 0.0.0.0
+curl -i -X POST http://127.0.0.1:8080/counters/foo
 ```
 
-You must pass the parameters `-h 0.0.0.0` to have it listed on all network adapters to that the post can be forwarded by `vagrant` to your host computer so that you can open the web page in a local browser at: http://localhost:5000
-
-## Vagrant shutdown
-
-If you are using Vagrant and VirtualBox, when you are done, you should exit the virtual machine and shut down the vm with:
+Read a counter:
 
 ```bash
- $ exit
- $ vagrant halt
+curl -i -X GET http://127.0.0.1:8080/counters/foo
 ```
 
-If the VM is no longer needed you can remove it with:
+Update a counter:
 
 ```bash
-  $ vagrant destroy
+curl -i -X PUT http://127.0.0.1:8080/counters/foo
 ```
 
-This repo is part of the DevOps course CSCI-GA.2820-001/002 at NYU taught by John Rofrano.
+Delete a counter:
+
+```bash
+curl -i -X DELETE http://127.0.0.1:8080/counters/foo
+```
+
+Reset action on a counter:
+
+```bash
+curl -i -X PUT http://127.0.0.1:8080/counters/foo/reset
+```
+
+You can also experiment with a REST client like [Postman](https://www.postman.com). This makes it much easier to manipulate your REST API than using the command line.
+
+## Bring down the development environment
+
+There is no need to manually bring the development environment down. When you close Visual Studio Code it will wait a while to see if you load it back up and if you don't it will stop the Docker containers. When you come back again, it will start them up and resume where you left off.
+
+If you have any issues with the Docker containers, here are some tips for [manually controlling containers](docs/software-prerequisites.md#some-docker-commands-for-manual-control)
+
+## License
+
+Copyright (c) John Rofrano. All rights reserved.
+
+Licensed under the Apache License. See [LICENSE](LICENSE)
+
+This repo is part of the NYU masters class: **CSCI-GA.2820-001 DevOps and Agile Methodologies** created by *John Rofrano*
