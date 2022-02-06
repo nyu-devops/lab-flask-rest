@@ -27,7 +27,5 @@ RUN python -m pip install --upgrade pip && \
 # Enable color terminal for docker exec bash
 ENV TERM=xterm-256color
 
-EXPOSE 5000
-
 # Become a regular user for development
 USER $USERNAME
