@@ -32,14 +32,12 @@ jobs:
       #   uses: shogo82148/actions-setup-redis@v1
       #   with:
       #     redis-version: '6.x'
+      # - run: redis-cli ping      
 
       - name: Start Redis
         uses: supercharge/redis-github-action@1.4.0
         with:
           redis-version: 6
-
-      - name: Check if Redis is ready
-        run: redis-cli ping
 
       - name: Install Python dependencies
         run: |
