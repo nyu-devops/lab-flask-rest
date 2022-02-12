@@ -19,12 +19,42 @@ Hit Counter REST API Demonstration
 """
 import os
 from redis import Redis
-from flask import Flask, jsonify, url_for
-from . import app
+from flask import Flask, jsonify, url_for, abort
+from . import app, status
 
+# Get the database from the environment
 DATABASE_URI = os.getenv("DATABASE_URI", "redis://localhost:6379")
 
 counter = Redis.from_url(DATABASE_URI, encoding="utf-8", decode_responses=True)
+
+############################################################
+# ERROR HANDLERS
+############################################################
+@app.errorhandler(status.HTTP_404_NOT_FOUND)
+def not_found(error):
+    """Handles resources not found with 404_NOT_FOUND"""
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message),
+        status.HTTP_404_NOT_FOUND,
+    )
+
+
+@app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
+def method_not_supported(error):
+    """Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED"""
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            error="Method not Allowed",
+            message=message,
+        ),
+        status.HTTP_405_METHOD_NOT_ALLOWED,
+    )
+
 
 ############################################################
 # Index page
@@ -33,7 +63,7 @@ counter = Redis.from_url(DATABASE_URI, encoding="utf-8", decode_responses=True)
 def index():
     app.logger.info("Request for Base URL")
     return jsonify(
-        status=200,
+        status=status.HTTP_200_OK,
         message="Hit Counter Service",
         version="1.0.0",
         url=url_for("list_counters", _external=True),
@@ -60,12 +90,12 @@ def create_counters(name):
     app.logger.info(f"Request to Create counter {name}...")
     count = counter.get(name)
     if count is not None:
-        return jsonify(code=409, error="Counter already exists"), 409
+        return jsonify(code=status.HTTP_409_CONFLICT, error="Counter already exists"), 409
 
     counter.set(name, 0)
 
     location_url = url_for("read_counters", name=name, _external=True)
-    return jsonify(name=name, counter=0), 201, {"Location": location_url}
+    return jsonify(name=name, counter=0), status.HTTP_201_CREATED, {"Location": location_url}
 
 
 ############################################################
@@ -76,7 +106,7 @@ def read_counters(name):
     app.logger.info(f"Request to Read counter {name}...")
     count = counter.get(name)
     if count is None:
-        return jsonify(code=404, error="Counter {} does not exist".format(name)), 404
+        abort(status.HTTP_404_NOT_FOUND, "Counter {} does not exist".format(name))
 
     return jsonify(name=name, counter=int(count))
 
@@ -89,7 +119,7 @@ def update_counters(name):
     app.logger.info(f"Request to Update counter {name}...")
     count = counter.get(name)
     if count is None:
-        return jsonify(code=404, error="Counter {} does not exist".format(name)), 404
+        abort(status.HTTP_404_NOT_FOUND, "Counter {} does not exist".format(name))
 
     count = counter.incr(name)
     return jsonify(name=name, counter=count)
@@ -105,7 +135,7 @@ def delete_counters(name):
     if count is not None:
         counter.delete(name)
 
-    return "", 204
+    return "", status.HTTP_204_NO_CONTENT
 
 
 ############################################################
@@ -116,7 +146,7 @@ def reset_counters(name):
     app.logger.info(f"Request to Reset counter {name}...")
     count = counter.get(name)
     if count is None:
-        return jsonify(code=404, error="Counter {} does not exist".format(name)), 404
+        abort(status.HTTP_404_NOT_FOUND, "Counter {} does not exist".format(name))
 
     # reset the counter to zero
     counter.set(name, 0)
