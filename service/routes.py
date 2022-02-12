@@ -20,10 +20,9 @@ Hit Counter REST API Demonstration
 import os
 from redis import Redis
 from flask import Flask, jsonify, url_for
+from . import app
 
 DATABASE_URI = os.getenv("DATABASE_URI", "redis://localhost:6379")
-
-app = Flask(__name__)
 
 counter = Redis.from_url(DATABASE_URI, encoding="utf-8", decode_responses=True)
 

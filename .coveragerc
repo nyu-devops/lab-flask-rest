@@ -1,6 +1,6 @@
 # .coveragerc
 [run]
-source=app.py
+source=service
 
 [report]
 show_missing = True
