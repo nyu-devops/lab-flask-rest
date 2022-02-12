@@ -54,10 +54,10 @@ This will run the test suite and report your code coverage. If you are intereste
 To run the service, use the same `bash` terminal that you ran the tests in and use `flask run` (Press Ctrl+C to exit):
 
 ```bash
-flask run -h 0.0.0.0 -p 8080
+flask run -h 0.0.0.0 -p 8000
 ```
 
-You must pass the parameters `-h 0.0.0.0` to have it listed on all network adapters so that the nextwork port `8080` can be forwarded by `docker` to your host computer so that you can open the web page in a local browser at: http://localhost:8080
+You must pass the parameters `-h 0.0.0.0` to have it listed on all network adapters so that the nextwork port `8000` can be forwarded by `docker` to your host computer so that you can open the web page in a local browser at: http://localhost:8000
 
 That's it! You should have a fully functioning REST API.
 
@@ -68,37 +68,37 @@ With the service running, open a second `bash` terminal and issue the following 
 List all counters:
 
 ```bash
-curl -i -X GET http://127.0.0.1:8080/counters
+curl -i -X GET http://127.0.0.1:8000/counters
 ```
 
 Create a counter:
 
 ```bash
-curl -i -X POST http://127.0.0.1:8080/counters/foo
+curl -i -X POST http://127.0.0.1:8000/counters/foo
 ```
 
 Read a counter:
 
 ```bash
-curl -i -X GET http://127.0.0.1:8080/counters/foo
+curl -i -X GET http://127.0.0.1:8000/counters/foo
 ```
 
 Update a counter:
 
 ```bash
-curl -i -X PUT http://127.0.0.1:8080/counters/foo
+curl -i -X PUT http://127.0.0.1:8000/counters/foo
 ```
 
 Delete a counter:
 
 ```bash
-curl -i -X DELETE http://127.0.0.1:8080/counters/foo
+curl -i -X DELETE http://127.0.0.1:8000/counters/foo
 ```
 
 Reset action on a counter:
 
 ```bash
-curl -i -X PUT http://127.0.0.1:8080/counters/foo/reset
+curl -i -X PUT http://127.0.0.1:8000/counters/foo/reset
 ```
 
 You can also experiment with a REST client like [Postman](https://www.postman.com). This makes it much easier to manipulate your REST API than using the command line.
