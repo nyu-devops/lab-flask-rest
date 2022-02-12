@@ -130,3 +130,8 @@ class CounterTest(TestCase):
         """ Test Reset a counter that doesn't exist """
         resp = self.app.put("/counters/{0}/reset".format(TEST_COUNTER))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_method_not_allowed_handler(self):
+        """ Test Method Not Allowed error handler """
+        resp = self.app.get("/counters/{0}/reset".format(TEST_COUNTER))
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
