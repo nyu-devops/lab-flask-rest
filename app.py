@@ -20,50 +20,59 @@ Hit Counter REST API Demonstration
 import os
 from redis import Redis
 from flask import Flask, jsonify, url_for, abort
-from . import app, status
+
+app = Flask(__name__)
 
 # Get the database from the environment
 DATABASE_URI = os.getenv("DATABASE_URI", "redis://localhost:6379")
 
 counter = Redis.from_url(DATABASE_URI, encoding="utf-8", decode_responses=True)
 
+# HTTP RETURN CODES
+HTTP_200_OK = 200
+HTTP_201_CREATED = 201
+HTTP_204_NO_CONTENT = 204
+HTTP_404_NOT_FOUND = 404
+HTTP_405_METHOD_NOT_ALLOWED = 405
+HTTP_409_CONFLICT = 409
+
 ############################################################
 # ERROR HANDLERS
 ############################################################
-@app.errorhandler(status.HTTP_404_NOT_FOUND)
+@app.errorhandler(HTTP_404_NOT_FOUND)
 def not_found(error):
     """Handles resources not found with 404_NOT_FOUND"""
     message = str(error)
     app.logger.warning(message)
     return (
-        jsonify(status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message),
-        status.HTTP_404_NOT_FOUND,
+        jsonify(status=HTTP_404_NOT_FOUND, error="Not Found", message=message),
+        HTTP_404_NOT_FOUND,
     )
 
 
-@app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
+@app.errorhandler(HTTP_405_METHOD_NOT_ALLOWED)
 def method_not_supported(error):
     """Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED"""
     message = str(error)
     app.logger.warning(message)
     return (
         jsonify(
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            status=HTTP_405_METHOD_NOT_ALLOWED,
             error="Method not Allowed",
             message=message,
         ),
-        status.HTTP_405_METHOD_NOT_ALLOWED,
+        HTTP_405_METHOD_NOT_ALLOWED,
     )
 
 
-@app.errorhandler(status.HTTP_409_CONFLICT)
+@app.errorhandler(HTTP_409_CONFLICT)
 def method_not_supported(error):
     """Handles database conflicts with HTTP_409_CONFLICT"""
     message = str(error)
     app.logger.warning(message)
     return (
-        jsonify(status=status.HTTP_409_CONFLICT, error="Conflict", message=message),
-        status.HTTP_409_CONFLICT,
+        jsonify(status=HTTP_409_CONFLICT, error="Conflict", message=message),
+        HTTP_409_CONFLICT,
     )
 
 
@@ -74,7 +83,7 @@ def method_not_supported(error):
 def index():
     app.logger.info("Request for Base URL")
     return jsonify(
-        status=status.HTTP_200_OK,
+        status=HTTP_200_OK,
         message="Hit Counter Service",
         version="1.0.0",
         url=url_for("list_counters", _external=True),
@@ -101,14 +110,14 @@ def create_counters(name):
     app.logger.info(f"Request to Create counter {name}...")
     count = counter.get(name)
     if count is not None:
-        abort(status.HTTP_409_CONFLICT, f"Counter {name} already exists")
+        abort(HTTP_409_CONFLICT, f"Counter {name} already exists")
 
     counter.set(name, 0)
 
     location_url = url_for("read_counters", name=name, _external=True)
     return (
         jsonify(name=name, counter=0),
-        status.HTTP_201_CREATED,
+        HTTP_201_CREATED,
         {"Location": location_url},
     )
 
@@ -121,7 +130,7 @@ def read_counters(name):
     app.logger.info(f"Request to Read counter {name}...")
     count = counter.get(name)
     if count is None:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+        abort(HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
 
     return jsonify(name=name, counter=int(count))
 
@@ -134,7 +143,7 @@ def update_counters(name):
     app.logger.info(f"Request to Update counter {name}...")
     count = counter.get(name)
     if count is None:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+        abort(HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
 
     count = counter.incr(name)
     return jsonify(name=name, counter=count)
@@ -150,7 +159,7 @@ def delete_counters(name):
     if count is not None:
         counter.delete(name)
 
-    return "", status.HTTP_204_NO_CONTENT
+    return "", HTTP_204_NO_CONTENT
 
 
 ############################################################
@@ -161,7 +170,7 @@ def reset_counters(name):
     app.logger.info(f"Request to Reset counter {name}...")
     count = counter.get(name)
     if count is None:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+        abort(HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
 
     # reset the counter to zero
     counter.set(name, 0)

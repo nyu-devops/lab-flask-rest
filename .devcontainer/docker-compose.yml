@@ -13,7 +13,6 @@ services:
     command: sleep infinity
     environment:
       FLASK_ENV: development
-      FLASK_APP: service:app
       DATABASE_URI: redis://redis:6379/0
     networks:
       - dev
