@@ -29,7 +29,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run unit tests with nose
-        run: nosetests
+        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
         env:
           DATABASE_URI: "redis://redis:6379/0"
 
