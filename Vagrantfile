@@ -14,7 +14,7 @@ Vagrant.configure(2) do |config|
 
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
-  config.vm.network "forwarded_port", guest: 5000, host: 5000, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 8000, host: 8000, host_ip: "127.0.0.1"
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -46,9 +46,10 @@ Vagrant.configure(2) do |config|
     docker.remains_running = true
     docker.has_ssh = true
     docker.privileged = true
-    docker.volumes = ["/sys/fs/cgroup:/sys/fs/cgroup:ro"]
+    docker.volumes = ["/sys/fs/cgroup:/sys/fs/cgroup:rw"]
+    docker.create_args = ["--cgroupns=host"]
     # Uncomment to force arm64 for testing images on Intel
-    # docker.create_args = ["--platform=linux/arm64"]     
+    # docker.create_args = ["--cgroupns=host", "--platform=linux/arm64"]     
   end
 
   ######################################################################
@@ -82,9 +83,6 @@ Vagrant.configure(2) do |config|
     apt-get install -y git vim tree python3 python3-pip python3-venv
     apt-get -y autoremove
     
-    # Need PostgreSQL development library to compile on arm64
-    apt-get install -y libpq-dev
-
     # Create a Python3 Virtual Environment and Activate it in .profile
     sudo -H -u vagrant sh -c 'python3 -m venv ~/venv'
     sudo -H -u vagrant sh -c 'echo ". ~/venv/bin/activate" >> ~/.profile'
@@ -95,13 +93,13 @@ Vagrant.configure(2) do |config|
   SHELL
 
   ######################################################################
-  # Add PostgreSQL docker container for database
+  # Add Redis 6 docker container for database
   ######################################################################
-  # docker run -d --name postgres -p 5432:5432 -v psqldata:/var/lib/postgresql/data postgres
+  # docker run -d --name redis -p 6379:6379 -v redis:/data redis:6-alpine
   config.vm.provision :docker do |d|
-    d.pull_images "postgres:alpine"
-    d.run "postgres:alpine",
-       args: "-d --name postgres -p 5432:5432 -v psqldata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=postgres"
+    d.pull_images "redis:6-alpine"
+    d.run "redis:6-alpine",
+      args: "-d --name redis -p 6379:6379 -v redis:/data"    
   end
 
 end
