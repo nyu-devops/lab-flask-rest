@@ -54,7 +54,7 @@ class CounterTest(TestCase):
 
     def test_create_counters(self):
         """ Test Create a counter """
-        resp = self.app.post("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.post(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_201_CREATED)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
@@ -76,7 +76,7 @@ class CounterTest(TestCase):
     def test_read_counters(self):
         """ Test Read a counter """
         self.test_create_counters()
-        resp = self.app.get("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.get(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
@@ -86,7 +86,7 @@ class CounterTest(TestCase):
         """ Test Update a counter """
         self.test_read_counters()
         # now update it
-        resp = self.app.put("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.put(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
@@ -95,15 +95,15 @@ class CounterTest(TestCase):
     def test_delete_counters(self):
         """ Test Delete a counter """
         self.test_create_counters()
-        resp = self.app.delete("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.delete(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_204_NO_CONTENT)
-        resp = self.app.get("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.get(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_404_NOT_FOUND)
 
     def test_counter_already_exists(self):
         """ Test counter already exists """
         self.test_create_counters()
-        resp = self.app.post("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.post(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_409_CONFLICT)
 
     def test_update_unknown_counter(self):
@@ -115,17 +115,17 @@ class CounterTest(TestCase):
         """ Test Reset a counter """
         self.test_create_counters()
         # update counter to 3
-        resp = self.app.put("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.put(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_200_OK)
-        resp = self.app.put("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.put(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_200_OK)
-        resp = self.app.put("/counters/{0}".format(TEST_COUNTER))
+        resp = self.app.put(f"/counters/{TEST_COUNTER}")
         self.assertEqual(resp.status_code, HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
         self.assertEqual(data["counter"], 3)
         # reset counter to zero
-        resp = self.app.put("/counters/{0}/reset".format(TEST_COUNTER))
+        resp = self.app.put(f"/counters/{TEST_COUNTER}/reset")
         self.assertEqual(resp.status_code, HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
@@ -133,10 +133,10 @@ class CounterTest(TestCase):
 
     def test_reset_unknown_counter(self):
         """ Test Reset a counter that doesn't exist """
-        resp = self.app.put("/counters/{0}/reset".format(TEST_COUNTER))
+        resp = self.app.put(f"/counters/{TEST_COUNTER}/reset")
         self.assertEqual(resp.status_code, HTTP_404_NOT_FOUND)
 
     def test_method_not_allowed_handler(self):
         """ Test Method Not Allowed error handler """
-        resp = self.app.get("/counters/{0}/reset".format(TEST_COUNTER))
+        resp = self.app.get(f"/counters/{TEST_COUNTER}/reset")
         self.assertEqual(resp.status_code, HTTP_405_METHOD_NOT_ALLOWED)
