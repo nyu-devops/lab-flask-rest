@@ -107,13 +107,13 @@ def list_counters():
     """Lists all of the counters in the database
 
     Returns:
-        dict:a dictionary of counters and their values
+        list: an array of counter names
     """
     app.logger.info("Request to list all counters...")
-    counters = [
-        dict(name=key, counter=int(counter.get(key))) for key in counter.keys("*")
-    ]
-    return jsonify(counters)
+
+    # Get the database key names as a list
+    names = counter.keys("*")
+    return jsonify(names)
 
 
 #-----------------------------------------------------------
