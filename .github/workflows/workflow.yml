@@ -38,3 +38,4 @@ jobs:
         with:
           files: ./coverage.xml
           flags: unittests
+          version: "v0.1.13"          
