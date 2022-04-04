@@ -1,3 +1,6 @@
+# Werkzeug keeps breaking Flask!
+Werkzeug==2.0.3
+
 # Runtime dependencies
 Flask==2.0.2
 redis==4.1.2
