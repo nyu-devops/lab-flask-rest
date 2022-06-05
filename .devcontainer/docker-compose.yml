@@ -8,11 +8,14 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile
     hostname: nyu
+    container_name: lab-flask-rest 
     volumes:
       - ..:/app
     command: sleep infinity
     environment:
+      FLASK_APP: service:app
       FLASK_ENV: development
+      PORT: 8000
       DATABASE_URI: redis://redis:6379/0
     networks:
       - dev
@@ -21,8 +24,8 @@ services:
 
   redis:
     image: redis:6-alpine
-    ports:
-      - 6379:6379
+    # ports:
+    #   - 6379:6379
     volumes:
       - redis:/data
     networks:
