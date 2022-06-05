@@ -1,33 +1,31 @@
 """
-Counter API Service Test Suite
+TestYourResourceModel API Service Test Suite
 
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
 """
+import os
+import logging
 from unittest import TestCase
-from app import app, remove_counters
-
-# HTTP RETURN CODES
-HTTP_200_OK = 200
-HTTP_201_CREATED = 201
-HTTP_204_NO_CONTENT = 204
-HTTP_404_NOT_FOUND = 404
-HTTP_405_METHOD_NOT_ALLOWED = 405
-HTTP_409_CONFLICT = 409
+from unittest.mock import MagicMock, patch
+from service import app
+from service.models import Counter
+from service.utils import status  # HTTP Status Codes
 
 TEST_COUNTER = "foo"
 
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class CounterTest(TestCase):
+class TestYourResourceServer(TestCase):
     """ REST API Server Tests """
 
     @classmethod
     def setUpClass(cls):
         """ This runs once before the entire test suite """
         app.testing = True
+        app.logger.setLevel(logging.CRITICAL)
 
     @classmethod
     def tearDownClass(cls):
@@ -36,7 +34,7 @@ class CounterTest(TestCase):
 
     def setUp(self):
         """ This runs before each test """
-        remove_counters()
+        Counter.remove_all()
         self.app = app.test_client()
 
     def tearDown(self):
@@ -48,95 +46,95 @@ class CounterTest(TestCase):
 ######################################################################
 
     def test_index(self):
-        """ Test index call """
+        """ It should call the home page """
         resp = self.app.get("/")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_create_counters(self):
-        """ Test Create a counter """
+        """ It should Create a counter """
         resp = self.app.post(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_201_CREATED)
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
-        self.assertEqual(data["counter"], 0)
+        self.assertEqual(data["count"], 0)
 
     def test_list_counters(self):
-        """ Test List counters """
+        """ It should List counters """
         resp = self.app.get("/counters")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 0)
         # create a counter and name sure it appears in the list
         self.app.post("/counters/foo")
         resp = self.app.get("/counters")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 1)
 
     def test_read_counters(self):
-        """ Test Read a counter """
+        """ It should Read a counter """
         self.test_create_counters()
         resp = self.app.get(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
-        self.assertEqual(data["counter"], 0)
+        self.assertEqual(data["count"], 0)
 
     def test_update_counters(self):
-        """ Test Update a counter """
+        """ It should Update a counter """
         self.test_read_counters()
         # now update it
         resp = self.app.put(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
-        self.assertEqual(data["counter"], 1)
+        self.assertEqual(data["count"], 1)
 
     def test_delete_counters(self):
-        """ Test Delete a counter """
+        """ It should Delete a counter """
         self.test_create_counters()
         resp = self.app.delete(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_204_NO_CONTENT)
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         resp = self.app.get(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_counter_already_exists(self):
-        """ Test counter already exists """
+        """ It should detect counter already exists """
         self.test_create_counters()
         resp = self.app.post(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_409_CONFLICT)
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
 
     def test_update_unknown_counter(self):
-        """ Test Update a counter that doesn't exist """
+        """ It should not Update a counter that doesn't exist """
         resp = self.app.put("/counters/bar")
-        self.assertEqual(resp.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_reset_counter(self):
-        """ Test Reset a counter """
+        """ It should Reset a counter """
         self.test_create_counters()
         # update counter to 3
         resp = self.app.put(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         resp = self.app.put(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         resp = self.app.put(f"/counters/{TEST_COUNTER}")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
-        self.assertEqual(data["counter"], 3)
+        self.assertEqual(data["count"], 3)
         # reset counter to zero
         resp = self.app.put(f"/counters/{TEST_COUNTER}/reset")
-        self.assertEqual(resp.status_code, HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], TEST_COUNTER)
-        self.assertEqual(data["counter"], 0)
+        self.assertEqual(data["count"], 0)
 
     def test_reset_unknown_counter(self):
-        """ Test Reset a counter that doesn't exist """
+        """ It should not Reset a counter that doesn't exist """
         resp = self.app.put(f"/counters/{TEST_COUNTER}/reset")
-        self.assertEqual(resp.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_method_not_allowed_handler(self):
-        """ Test Method Not Allowed error handler """
+        """ It should trigger Method Not Allowed error handler """
         resp = self.app.get(f"/counters/{TEST_COUNTER}/reset")
-        self.assertEqual(resp.status_code, HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
