@@ -7,7 +7,7 @@ all: help
 
 venv: ## Create a Python virtual environment
 	$(info Creating Python 3 virtual environment...)
-	python3 -m venv venv
+	python3 -m venv .venv
 
 install: ## Install dependencies
 	$(info Installing dependencies...)
