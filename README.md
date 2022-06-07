@@ -1,6 +1,7 @@
 # lab-flask-rest
 
-[![Build Status](https://github.com/nyu-devops/lab-flask-rest/actions/workflows/workflow.yml/badge.svg)](https://github.com/nyu-devops/lab-flask-rest/actions)
+[![language](https://img.shields.io/badge/Language-Python-blue.svg)](http://python.org)
+[![Build Status](https://github.com/nyu-devops/lab-flask-rest/actions/workflows/ci.yaml/badge.svg)](https://github.com/nyu-devops/lab-flask-rest/actions)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **NYU DevOps and Agile Methodologies** lab showing a best practice for creating REST API, complete with unit tests.
