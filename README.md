@@ -1,6 +1,6 @@
 # lab-flask-rest
 
-[![language](https://img.shields.io/badge/Language-Python-blue.svg)](http://python.org)
+[![language](https://img.shields.io/badge/Language-Python_3-blue.svg)](http://python.org)
 [![Build Status](https://github.com/nyu-devops/lab-flask-rest/actions/workflows/ci.yaml/badge.svg)](https://github.com/nyu-devops/lab-flask-rest/actions)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
