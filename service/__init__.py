@@ -6,7 +6,7 @@ and SQL database
 """
 import sys
 from flask import Flask
-from .utils import log_handlers
+from .common import log_handlers
 
 # Create Flask application
 app = Flask(__name__)
@@ -17,7 +17,7 @@ app.config.from_object("config")
 from service import routes
 # flake8: noqa: F401
 # pylint: disable=wrong-import-position
-from .utils import error_handlers
+from .common import error_handlers
 
 # Set up logging for production
 log_handlers.init_logging(app, "gunicorn.error")

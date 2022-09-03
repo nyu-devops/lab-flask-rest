@@ -21,7 +21,7 @@ This service keeps track of named counters
 """
 from flask import jsonify, url_for, abort
 from service.models import Counter
-from .utils import status  # HTTP Status Codes
+from .common import status  # HTTP Status Codes
 
 # Import Flask application
 from . import app
