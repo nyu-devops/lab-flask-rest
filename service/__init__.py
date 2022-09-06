@@ -6,11 +6,12 @@ and SQL database
 """
 import sys
 from flask import Flask
+from service import config
 from .common import log_handlers
 
 # Create Flask application
 app = Flask(__name__)
-app.config.from_object("config")
+app.config.from_object(config)
 
 # Dependencies require we import the routes AFTER the Flask app is created
 # pylint: disable=wrong-import-position, wrong-import-order
