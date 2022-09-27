@@ -197,13 +197,3 @@ def reset_counters(name):
     counter.reset()
 
     return jsonify(counter.serialize())
-
-
-######################################################################
-#  U T I L I T Y   F U N C T I O N S
-######################################################################
-def init_db():
-    """Initializes the SQLAlchemy app"""
-    # pylint: disable=invalid-name, global-variable-not-assigned
-    global app
-    Counter.init_db(app)
