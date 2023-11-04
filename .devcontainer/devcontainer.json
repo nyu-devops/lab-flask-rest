@@ -4,26 +4,56 @@
 	"service": "app",
 	"workspaceFolder": "/app",
 	"remoteUser": "devops",
-	"extensions": [
-		"VisualStudioExptTeam.vscodeintellicode",
-		"ms-python.python",
-		"ms-python.vscode-pylance",
-		"alexkrechik.cucumberautocomplete",
-		"cstrap.flask-snippets",
-		"yzhang.markdown-all-in-one",
-		"bierner.github-markdown-preview",
-		"hnw.vscode-auto-open-markdown-preview",
-		"DavidAnson.vscode-markdownlint",
-		"donjayamanne.githistory",
-		"GitHub.vscode-pull-request-github",
-		"hbenl.vscode-test-explorer",
-		"LittleFoxTeam.vscode-python-test-adapter",
-		"njpwerner.autodocstring",
-		"redhat.vscode-yaml",
-		"rangav.vscode-thunder-client",		
-		"streetsidesoftware.code-spell-checker",
-		"wholroyd.jinja",
-		"bbenoist.vagrant"
-	],
+	
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnSave": true
+				},
+				"markdown-preview-github-styles.colorTheme": "light",
+				"makefile.extensionOutputFolder": "/tmp",
+				"python.testing.pytestArgs": [
+					"tests"
+				],
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestEnabled": true,			
+				"files.exclude": {
+					"**/.git": true,
+					"**/.DS_Store": true,
+					"**/*.pyc": true,
+					"**/__pycache__": true,
+					"**/.pytest_cache": true
+				}
+			},			
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.pylint",
+				"ms-python.flake8",
+				"ms-python.black-formatter",
+				"njpwerner.autodocstring",
+				"wholroyd.jinja",
+				"ms-vscode.makefile-tools",
+				"tamasfe.even-better-toml",
+				"yzhang.markdown-all-in-one",
+				"hnw.vscode-auto-open-markdown-preview",
+				"bierner.markdown-preview-github-styles",
+				"davidanson.vscode-markdownlint",
+				"donjayamanne.githistory",
+				"GitHub.vscode-pull-request-github",
+				"hbenl.vscode-test-explorer",
+				"LittleFoxTeam.vscode-python-test-adapter",
+				"redhat.vscode-yaml",
+				"ms-azuretools.vscode-docker",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"inercia.vscode-k3d",
+				"rangav.vscode-thunder-client",
+				"bbenoist.vagrant",
+				"streetsidesoftware.code-spell-checker"
+			]
+		}
+	},
 	"postCreateCommand": "sudo pip install -r requirements.txt"
 }
