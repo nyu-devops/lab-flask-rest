@@ -1,3 +1,0 @@
-[MESSAGES CONTROL]
-# Pylint cannot detect Flask app methods to we turn checkint off
-disable=E1101
