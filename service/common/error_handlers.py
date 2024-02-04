@@ -1,5 +1,5 @@
 ######################################################################
-# Copyright 2016, 2022 John J. Rofrano. All Rights Reserved.
+# Copyright 2016, 2024 John J. Rofrano. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,10 +22,17 @@ This module contains error handlers functions to send back errors as json
 from flask import jsonify
 from flask import current_app as app
 from service.common import status
+from service.models import DatabaseConnectionError
 
 ######################################################################
 # Error Handlers
 ######################################################################
+
+
+@app.errorhandler(DatabaseConnectionError)
+def request_validation_error(error):
+    """Handles Value Errors from bad data"""
+    return service_unavailable(error)
 
 
 @app.errorhandler(status.HTTP_404_NOT_FOUND)

@@ -19,15 +19,10 @@ Counter Service
 
 This service keeps track of named counters
 """
-
-import os
 from flask import jsonify, abort, url_for
 from flask import current_app as app
 from service.common import status  # HTTP Status Codes
-from .models import Counter, DatabaseConnectionError
-
-DEBUG = os.getenv("DEBUG", "False") == "True"
-PORT = os.getenv("PORT", "8080")
+from service.models import Counter
 
 
 ######################################################################
@@ -46,6 +41,10 @@ def index():
         status.HTTP_200_OK,
     )
 
+############################################################
+#           R E S T   A P I   M E T H O D S
+############################################################
+
 
 ############################################################
 # List counters
@@ -54,11 +53,10 @@ def index():
 def list_counters():
     """List counters"""
     app.logger.info("Request to list all counters...")
-    try:
-        counters = Counter.all()
-    except DatabaseConnectionError as err:
-        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
 
+    counters = Counter.all()
+
+    app.logger.info("Returning %d counters...", len(counters))
     return jsonify(counters)
 
 
@@ -68,15 +66,12 @@ def list_counters():
 @app.route("/counters/<name>", methods=["GET"])
 def read_counters(name):
     """Read a counter"""
-    app.logger.info("Request to Read counter: %s...", name)
+    app.logger.info("Request to Read counter: '%s'...", name)
 
-    try:
-        counter = Counter.find(name)
-    except DatabaseConnectionError as err:
-        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
+    counter = Counter.find(name)
 
     if not counter:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+        error(status.HTTP_404_NOT_FOUND, f"Counter '{name}' does not exist")
 
     app.logger.info("Returning: %d...", counter.value)
     return jsonify(counter.serialize())
@@ -88,17 +83,16 @@ def read_counters(name):
 @app.route("/counters/<name>", methods=["POST"])
 def create_counters(name):
     """Create a counter"""
-    app.logger.info("Request to Create counter...")
-    try:
-        counter = Counter.find(name)
-        if counter is not None:
-            return jsonify(code=status.HTTP_409_CONFLICT, error="Counter already exists"), status.HTTP_409_CONFLICT
+    app.logger.info("Request to Create counter: '%s'...", name)
 
-        counter = Counter(name)
-    except DatabaseConnectionError as err:
-        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
+    counter = Counter.find(name)
+    if counter is not None:
+        error(status.HTTP_409_CONFLICT, f"Counter '{name}' already exists")
+
+    counter = Counter(name)
 
     location_url = url_for("read_counters", name=name, _external=True)
+    app.logger.info("Counter '%s' created", name)
     return (
         jsonify(counter.serialize()),
         status.HTTP_201_CREATED,
@@ -112,16 +106,15 @@ def create_counters(name):
 @app.route("/counters/<name>", methods=["PUT"])
 def update_counters(name):
     """Update a counter"""
-    app.logger.info("Request to Update counter...")
-    try:
-        counter = Counter.find(name)
-        if counter is None:
-            return jsonify(code=status.HTTP_404_NOT_FOUND, error=f"Counter {name} does not exist"), status.HTTP_404_NOT_FOUND
+    app.logger.info("Request to Update counter: '%s'...", name)
 
-        count = counter.increment()
-    except DatabaseConnectionError as err:
-        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
+    counter = Counter.find(name)
+    if counter is None:
+        error(status.HTTP_404_NOT_FOUND, f"Counter '{name}' does not exist")
 
+    count = counter.increment()
+
+    app.logger.info("Counter '%s' updated to %d", name, count)
     return jsonify(name=name, counter=count)
 
 
@@ -131,12 +124,22 @@ def update_counters(name):
 @app.route("/counters/<name>", methods=["DELETE"])
 def delete_counters(name):
     """Delete a counter"""
-    app.logger.info("Request to Delete counter...")
-    try:
-        counter = Counter.find(name)
-        if counter:
-            del counter.value
-    except DatabaseConnectionError as err:
-        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
+    app.logger.info("Request to Delete counter: '%s'...", name)
+
+    counter = Counter.find(name)
+    if counter:
+        del counter.value
+        app.logger.info("Counter '%s' deleted", name)
 
     return "", status.HTTP_204_NO_CONTENT
+
+
+############################################################
+#         U T I L I T Y   F U N C T I O N S
+############################################################
+
+
+def error(status_code, reason):
+    """Logs the error and then aborts"""
+    app.logger.error(reason)
+    abort(status_code, reason)
