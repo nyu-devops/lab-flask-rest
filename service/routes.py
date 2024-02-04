@@ -78,7 +78,7 @@ def create_counters(name):
     Returns:
         dict: the counter and it's value
     """
-    app.logger.info(f"Request to Create counter {name}...")
+    app.logger.info("Request to Create counter %s...", name)
 
     # See if the counter already exists and send an error if it does
     counter = Counter.find(name)
@@ -111,7 +111,7 @@ def read_counters(name):
     Returns:
         dict: the counter and it's value
     """
-    app.logger.info(f"Request to Read counter {name}...")
+    app.logger.info("Request to Read counter %s...", name)
 
     # Get the current counter
     counter = Counter.find(name)
@@ -135,7 +135,7 @@ def update_counters(name):
     Returns:
         dict: the counter and it's value
     """
-    app.logger.info(f"Request to Update counter {name}...")
+    app.logger.info("Request to Update counter %s...", name)
 
     # Get the current counter
     counter = Counter.find(name)
@@ -161,7 +161,7 @@ def delete_counters(name):
     Returns:
         str: always returns an empty string
     """
-    app.logger.info(f"Request to Delete counter {name}...")
+    app.logger.info("Request to Delete counter %s...", name)
 
     # Get the current counter
     counter = Counter.find(name)
@@ -186,7 +186,7 @@ def reset_counters(name):
     Returns:
         dict: the counter and it's zero value
     """
-    app.logger.info(f"Request to Reset counter {name}...")
+    app.logger.info("Request to Reset counter %s...", name)
 
     # Get the current counter
     counter = Counter.find(name)
