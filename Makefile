@@ -7,20 +7,21 @@ all: help
 
 venv: ## Create a Python virtual environment
 	$(info Creating Python 3 virtual environment...)
-	python3 -m venv .venv
+	poetry shell
 
 install: ## Install dependencies
 	$(info Installing dependencies...)
-	sudo pip install -r requirements.txt
+	sudo poetry install
 
 lint: ## Run the linter
 	$(info Running linting...)
 	flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
 	flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+	pylint service --max-line-length=127
 
 test: ## Run the unit tests
-	$(info Running tests...)
-	nosetests --with-spec --spec-color
+	$(info Running unit tests...)
+	pytest
 
 run: ## Run the service
 	$(info Starting service...)

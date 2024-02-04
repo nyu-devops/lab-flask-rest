@@ -3,14 +3,18 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+    - 'README.md'
   pull_request:
     branches:
       - master
+    paths-ignore:
+    - 'README.md'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: python:3.9-slim
+    container: python:3.11-slim
 
     # Required services    
     services:
@@ -18,31 +22,32 @@ jobs:
         image: redis:6-alpine
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v3
+            
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip poetry
+          poetry config virtualenvs.create false
+          poetry install
 
       - name: Linting
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+          pylint service --max-line-length=127
 
-      - name: Run unit tests with nose
-        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
+      - name: Run unit tests with PyTest
+        run: pytest --pspec --cov=service --cov-fail-under=95
         env:
-          DATABASE_URI: "redis://redis:6379/0"
+          DATABASE_URI: "redis://redis:6379"
 
       - name: Upload code coverage
-        uses: codecov/codecov-action@v2  
-        with:
-          files: ./coverage.xml
-          flags: unittests
-          version: "v0.1.13"          
+        uses: codecov/codecov-action@v3.1.4

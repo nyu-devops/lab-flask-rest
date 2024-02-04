@@ -2,9 +2,8 @@
 Global Configuration for Application
 """
 import os
+import logging
 
-# Get the database from the environment (12 factor)
-DATABASE_URI = os.getenv("DATABASE_URI", "redis://localhost:6379")
-
-# Secret for session management
-SECRET_KEY = os.getenv("SECRET_KEY", "s3cr3t-key-shhhh")
+# Get configuration from environment
+DATABASE_URI = os.getenv("DATABASE_URI", "redis://:@localhost:6379/0")
+LOGGING_LEVEL = logging.INFO

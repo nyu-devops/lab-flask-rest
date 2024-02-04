@@ -1,10 +1,10 @@
+// cSpell: disable
 {
 	"name": "Python 3 & Redis",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/app",
 	"remoteUser": "devops",
-	
 	"customizations": {
 		"vscode": {
 			"settings": {
@@ -14,11 +14,11 @@
 				},
 				"markdown-preview-github-styles.colorTheme": "light",
 				"makefile.extensionOutputFolder": "/tmp",
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestEnabled": true,			
 				"python.testing.pytestArgs": [
 					"tests"
 				],
-				"python.testing.unittestEnabled": false,
-				"python.testing.pytestEnabled": true,			
 				"files.exclude": {
 					"**/.git": true,
 					"**/.DS_Store": true,
@@ -33,18 +33,18 @@
 				"ms-python.pylint",
 				"ms-python.flake8",
 				"ms-python.black-formatter",
-				"njpwerner.autodocstring",
-				"wholroyd.jinja",
 				"ms-vscode.makefile-tools",
-				"tamasfe.even-better-toml",
 				"yzhang.markdown-all-in-one",
 				"hnw.vscode-auto-open-markdown-preview",
-				"bierner.markdown-preview-github-styles",
 				"davidanson.vscode-markdownlint",
+				"bierner.markdown-preview-github-styles",
+				"tamasfe.even-better-toml",
 				"donjayamanne.githistory",
 				"GitHub.vscode-pull-request-github",
 				"hbenl.vscode-test-explorer",
 				"LittleFoxTeam.vscode-python-test-adapter",
+				"njpwerner.autodocstring",
+				"wholroyd.jinja",
 				"redhat.vscode-yaml",
 				"ms-azuretools.vscode-docker",
 				"ms-kubernetes-tools.vscode-kubernetes-tools",
@@ -55,5 +55,5 @@
 			]
 		}
 	},
-	"postCreateCommand": "sudo pip install -r requirements.txt"
+	// "postCreateCommand": "bash /app/.devcontainer/scripts/post-install.sh"
 }
