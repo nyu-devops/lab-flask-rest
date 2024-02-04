@@ -1,3 +1,4 @@
+# coding: utf8
 """
 Descriptive HTTP status codes, for code readability.
 See RFC 2616 and RFC 6585.

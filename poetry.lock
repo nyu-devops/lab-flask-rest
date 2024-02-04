@@ -373,6 +373,25 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "flask-redis"
+version = "0.4.0"
+description = "A nice way to use Redis in your Flask app"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+files = [
+    {file = "flask-redis-0.4.0.tar.gz", hash = "sha256:e1fccc11e7ea35c2a4d68c0b9aa58226a098e45e834d615c7b6c4928b01ddd6c"},
+    {file = "flask_redis-0.4.0-py2.py3-none-any.whl", hash = "sha256:8d79eef4eb1217095edab603acc52f935b983ae4b7655ee7c82c0dfd87315d17"},
+]
+
+[package.dependencies]
+Flask = ">=0.8"
+redis = ">=2.7.6"
+
+[package.extras]
+dev = ["coverage", "pre-commit", "pytest", "pytest-mock"]
+tests = ["coverage", "pytest", "pytest-mock"]
+
+[[package]]
 name = "gunicorn"
 version = "21.2.0"
 description = "WSGI HTTP Server for UNIX"
@@ -1092,4 +1111,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "62db235e00d94e8e52c69d7ccb07b7c1e41765156692349e33eb6c4ee36b432f"
+content-hash = "cf73b89a8440ba253119d096b18749a41f7f339ce2a7c0d19c9336ba73ca365d"

@@ -1,5 +1,5 @@
 ######################################################################
-# Copyright (c) 2022 John J. Rofrano. All Rights Reserved.
+# Copyright (c) 2015, 2024 John J. Rofrano. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,12 +19,15 @@ Counter Service
 
 This service keeps track of named counters
 """
-from flask import jsonify, url_for, abort
-from service.models import Counter
-from .common import status  # HTTP Status Codes
 
-# Import Flask application
-from . import app
+import os
+from flask import jsonify, abort, url_for
+from flask import current_app as app
+from service.common import status  # HTTP Status Codes
+from .models import Counter, DatabaseConnectionError
+
+DEBUG = os.getenv("DEBUG", "False") == "True"
+PORT = os.getenv("PORT", "8080")
 
 
 ######################################################################
@@ -45,51 +48,56 @@ def index():
 
 
 ############################################################
-#                 R E S T   A P I
-############################################################
-
-# -----------------------------------------------------------
 # List counters
-# -----------------------------------------------------------
+############################################################
 @app.route("/counters", methods=["GET"])
 def list_counters():
-    """Lists all of the counters in the database
-
-    Returns:
-        list: an array of counter names
-    """
+    """List counters"""
     app.logger.info("Request to list all counters...")
+    try:
+        counters = Counter.all()
+    except DatabaseConnectionError as err:
+        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
 
-    # Get the names of all of the counters
-    counters = [counter.serialize() for counter in Counter.all()]
     return jsonify(counters)
 
 
-# -----------------------------------------------------------
-# Create counters
-# -----------------------------------------------------------
+############################################################
+# Read counters
+############################################################
+@app.route("/counters/<name>", methods=["GET"])
+def read_counters(name):
+    """Read a counter"""
+    app.logger.info("Request to Read counter: %s...", name)
+
+    try:
+        counter = Counter.find(name)
+    except DatabaseConnectionError as err:
+        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
+
+    if not counter:
+        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
+
+    app.logger.info("Returning: %d...", counter.value)
+    return jsonify(counter.serialize())
+
+
+############################################################
+# Create counter
+############################################################
 @app.route("/counters/<name>", methods=["POST"])
 def create_counters(name):
-    """Creates a new counter and stores it in the database
+    """Create a counter"""
+    app.logger.info("Request to Create counter...")
+    try:
+        counter = Counter.find(name)
+        if counter is not None:
+            return jsonify(code=status.HTTP_409_CONFLICT, error="Counter already exists"), status.HTTP_409_CONFLICT
 
-    Args:
-        name (str): the name of the counter to create
+        counter = Counter(name)
+    except DatabaseConnectionError as err:
+        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
 
-    Returns:
-        dict: the counter and it's value
-    """
-    app.logger.info("Request to Create counter %s...", name)
-
-    # See if the counter already exists and send an error if it does
-    counter = Counter.find(name)
-    if counter is not None:
-        abort(status.HTTP_409_CONFLICT, f"Counter {name} already exists")
-
-    # Create the new counter
-    counter = Counter(name)
-    counter.create()
-
-    # Set the location header and return the new counter
     location_url = url_for("read_counters", name=name, _external=True)
     return (
         jsonify(counter.serialize()),
@@ -98,102 +106,37 @@ def create_counters(name):
     )
 
 
-# -----------------------------------------------------------
-# Read counters
-# -----------------------------------------------------------
-@app.route("/counters/<name>", methods=["GET"])
-def read_counters(name):
-    """Reads a counter from the database
-
-    Args:
-        name (str): the name of the counter to read
-
-    Returns:
-        dict: the counter and it's value
-    """
-    app.logger.info("Request to Read counter %s...", name)
-
-    # Get the current counter
-    counter = Counter.find(name)
-    if counter is None:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
-
-    # Return the counter
-    return jsonify(counter.serialize())
-
-
-# -----------------------------------------------------------
+############################################################
 # Update counters
-# -----------------------------------------------------------
+############################################################
 @app.route("/counters/<name>", methods=["PUT"])
 def update_counters(name):
-    """Updates a counter in the database
+    """Update a counter"""
+    app.logger.info("Request to Update counter...")
+    try:
+        counter = Counter.find(name)
+        if counter is None:
+            return jsonify(code=status.HTTP_404_NOT_FOUND, error=f"Counter {name} does not exist"), status.HTTP_404_NOT_FOUND
 
-    Args:
-        name (str): the name of the counter to update
+        count = counter.increment()
+    except DatabaseConnectionError as err:
+        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
 
-    Returns:
-        dict: the counter and it's value
-    """
-    app.logger.info("Request to Update counter %s...", name)
-
-    # Get the current counter
-    counter = Counter.find(name)
-    if counter is None:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
-
-    # Increment the counter and return the new value
-    counter.update()
-
-    return jsonify(counter.serialize())
+    return jsonify(name=name, counter=count)
 
 
-# -----------------------------------------------------------
+############################################################
 # Delete counters
-# -----------------------------------------------------------
+############################################################
 @app.route("/counters/<name>", methods=["DELETE"])
 def delete_counters(name):
-    """Delete a counter from the database
+    """Delete a counter"""
+    app.logger.info("Request to Delete counter...")
+    try:
+        counter = Counter.find(name)
+        if counter:
+            del counter.value
+    except DatabaseConnectionError as err:
+        abort(status.HTTP_503_SERVICE_UNAVAILABLE, err)
 
-    Args:
-        name (str): the name of the counter to delete
-
-    Returns:
-        str: always returns an empty string
-    """
-    app.logger.info("Request to Delete counter %s...", name)
-
-    # Get the current counter
-    counter = Counter.find(name)
-    # If it exists delete it, if not do nothing
-    if counter is not None:
-        counter.delete()
-
-    # Delete always returns 204
     return "", status.HTTP_204_NO_CONTENT
-
-
-# -----------------------------------------------------------
-# Reset counters action
-# -----------------------------------------------------------
-@app.route("/counters/<name>/reset", methods=["PUT"])
-def reset_counters(name):
-    """Resets a counter back to zero
-
-    Args:
-        name (str): the name of the counter to reset
-
-    Returns:
-        dict: the counter and it's zero value
-    """
-    app.logger.info("Request to Reset counter %s...", name)
-
-    # Get the current counter
-    counter = Counter.find(name)
-    if counter is None:
-        abort(status.HTTP_404_NOT_FOUND, f"Counter {name} does not exist")
-
-    # reset the counter to zero
-    counter.reset()
-
-    return jsonify(counter.serialize())
