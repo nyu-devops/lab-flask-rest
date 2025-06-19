@@ -25,7 +25,7 @@ pytest-pspec = "^0.0.4"
 pytest-cov = "^4.1.0"
 factory-boy = "^3.3.0"
 coverage = "^7.3.2"
-httpie = "^3.2.2"
+httpie = "^3.2.3"
 
 [build-system]
 requires = ["poetry-core"]
