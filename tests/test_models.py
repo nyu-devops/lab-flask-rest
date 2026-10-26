@@ -21,14 +21,13 @@ Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
 """
-import os
 import logging
 from unittest import TestCase
 from unittest.mock import patch
 from redis.exceptions import ConnectionError as RedisConnectionError
+from service.config import DATABASE_URI
 from service.models import Counter, DatabaseConnectionError
 
-DATABASE_URI = os.getenv("DATABASE_URI", "redis://:@localhost:6379/0")
 
 logging.disable(logging.CRITICAL)
 
@@ -140,7 +139,6 @@ class CounterTests(TestCase):
         ping_mock.side_effect = RedisConnectionError()
         self.assertRaises(DatabaseConnectionError, self.counter.connect, DATABASE_URI)
 
-    @patch.dict(os.environ, {"DATABASE_URI": ""})
-    def test_missing_environment_creds(self):
-        """It should detect Missing environment credentials"""
-        self.assertRaises(DatabaseConnectionError, self.counter.connect)
+    def test_missing_database_uri(self):
+        """It should detect a missing database URI"""
+        self.assertRaises(DatabaseConnectionError, self.counter.connect, "")

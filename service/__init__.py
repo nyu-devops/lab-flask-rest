@@ -16,12 +16,8 @@
 Package for the application models and service routes
 """
 from flask import Flask
-from flask_redis import FlaskRedis
 from service import config
 from service.common import log_handlers
-
-# Globally accessible libraries
-# redis = FlaskRedis()
 
 
 ############################################################
@@ -31,9 +27,6 @@ def init_app():
     """Initialize the core application."""
     app = Flask(__name__)
     app.config.from_object(config)
-
-    # Initialize Plugins
-    # redis.init_app(app)
 
     with app.app_context():
         # Include our Routes

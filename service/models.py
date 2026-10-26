@@ -16,14 +16,11 @@
 """
 Counter Model
 """
-import os
 import logging
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 logger = logging.getLogger(__name__)
-
-DATABASE_URI = os.getenv("DATABASE_URI", "redis://localhost:6379")
 
 
 class DatabaseConnectionError(RedisConnectionError):
@@ -33,10 +30,10 @@ class DatabaseConnectionError(RedisConnectionError):
 class Counter:
     """An integer counter that is persisted in Redis
 
-    You can establish a connection to Redis using an environment
-    variable DATABASE_URI in the following format:
+    Call Counter.connect() with a Redis URI before use. The application
+    takes the URI from service.config.DATABASE_URI, which has the form:
 
-        DATABASE_URI="redis://userid:password@localhost:6379/0"
+        redis://userid:password@localhost:6379/0
 
     This follows the same standards as SQLAlchemy URIs
     """
@@ -155,24 +152,21 @@ class Counter:
         return success
 
     @classmethod
-    def connect(cls, database_uri=None):
-        """Established database connection
+    def connect(cls, database_uri):
+        """Establishes the database connection
 
         Arguments:
-            database_uri: a uri to the Redis database
+            database_uri: a uri to the Redis database (see service.config)
 
         Raises:
-            DatabaseConnectionError: Could not connect
+            DatabaseConnectionError: the uri is empty or Redis is unreachable
         """
         if not database_uri:
-            if "DATABASE_URI" in os.environ and os.environ["DATABASE_URI"]:
-                database_uri = os.environ["DATABASE_URI"]
-            else:
-                msg = "DATABASE_URI is missing from environment."
-                logger.error(msg)
-                raise DatabaseConnectionError(msg)
+            msg = "No database URI was provided; check DATABASE_URI in service.config"
+            logger.error(msg)
+            raise DatabaseConnectionError(msg)
 
-        logger.info("Attempting to connecting to Redis...")
+        logger.info("Attempting to connect to Redis...")
 
         cls.redis = Redis.from_url(
             database_uri, encoding="utf-8", decode_responses=True

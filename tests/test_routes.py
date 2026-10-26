@@ -20,18 +20,16 @@ Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
 """
-import os
 import logging
 from unittest import TestCase
 from unittest.mock import patch
 from wsgi import app
+from service.config import DATABASE_URI
 from service.models import Counter, DatabaseConnectionError
 from service.common import status
 from service.validators import MAX_NAME_LENGTH
 
 # logging.disable(logging.CRITICAL)
-
-DATABASE_URI = os.getenv("DATABASE_URI", "redis://:@localhost:6379/0")
 
 
 ######################################################################
