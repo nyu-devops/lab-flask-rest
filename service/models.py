@@ -43,13 +43,19 @@ class Counter:
 
     redis = None
 
-    def __init__(self, name: str = "hits", value: int = None):
-        """Constructor"""
+    def __init__(self, name: str = "hits", *, create: bool = True):
+        """Constructor
+
+        Arguments:
+            name: the name of the counter
+            create: when True (the default) the counter is created in Redis
+                with a value of 0 if it does not already exist. An existing
+                counter is never overwritten. Pass create=False to wrap a
+                counter that is already known to exist without touching Redis.
+        """
         self.name = name
-        if not value:
-            self.value = 0
-        else:
-            self.value = value
+        if create:
+            Counter.redis.set(self.name, 0, nx=True)
 
     @property
     def value(self):
@@ -72,38 +78,57 @@ class Counter:
 
     def serialize(self):
         """Converts a counter into a dictionary"""
-        return {
-            "name": self.name,
-            "counter": int(Counter.redis.get(self.name))
-        }
+        return {"name": self.name, "counter": self.value}
 
     ######################################################################
     #  F I N D E R   M E T H O D S
     ######################################################################
 
     @classmethod
-    def all(cls):
-        """Returns all of the counters"""
+    def create(cls, name):
+        """Atomically creates a new counter with a value of 0
+
+        Returns:
+            Counter: the new counter, or None if a counter with that
+            name already exists
+        """
         try:
-            counters = [
-                {"name": key, "counter": int(cls.redis.get(key))}
-                for key in cls.redis.keys("*")
-            ]
+            created = cls.redis.set(name, 0, nx=True)
         except Exception as err:
             raise DatabaseConnectionError(err) from err
-        return counters
+        return cls(name, create=False) if created else None
+
+    @classmethod
+    def all(cls):
+        """Returns all of the counters
+
+        Uses SCAN (which does not block the server the way KEYS does) to
+        collect the names and a single MGET to fetch every value, so the
+        number of round trips does not grow with the number of counters.
+        """
+        try:
+            # dict.fromkeys() de-duplicates: SCAN may return a key more than once
+            names = list(dict.fromkeys(cls.redis.scan_iter("*", count=1000)))
+            values = cls.redis.mget(names) if names else []
+        except Exception as err:
+            raise DatabaseConnectionError(err) from err
+        return [
+            {"name": name, "counter": int(value)}
+            for name, value in zip(names, values)
+            if value is not None  # key removed between SCAN and MGET
+        ]
 
     @classmethod
     def find(cls, name):
-        """Finds a counter with the name or returns None"""
-        counter = None
+        """Finds a counter with the name or returns None
+
+        This is a read-only operation; it never writes to Redis.
+        """
         try:
-            count = cls.redis.get(name)
-            if count:
-                counter = Counter(name, count)
+            exists = cls.redis.exists(name)
         except Exception as err:
             raise DatabaseConnectionError(err) from err
-        return counter
+        return cls(name, create=False) if exists else None
 
     @classmethod
     def remove_all(cls):
