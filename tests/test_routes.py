@@ -288,7 +288,7 @@ class ServiceTest(TestCase):  # pylint: disable=too-many-public-methods
     #  T E S T   E R R O R   H A N D L E R S
     ######################################################################
 
-    @patch("service.routes.Counter.redis.get")
+    @patch("service.routes.Counter.redis.exists")
     def test_failed_get_request(self, redis_mock):
         """It should handle Error for failed GET"""
         redis_mock.return_value = 0
@@ -313,7 +313,7 @@ class ServiceTest(TestCase):  # pylint: disable=too-many-public-methods
         resp = self.app.post("/counters/foo")
         self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch("service.routes.Counter.redis.keys")
+    @patch("service.routes.Counter.redis.scan_iter")
     def test_failed_list_request(self, redis_mock):
         """It should handle Error for failed LIST"""
         redis_mock.return_value = 0
@@ -324,7 +324,7 @@ class ServiceTest(TestCase):  # pylint: disable=too-many-public-methods
     def test_failed_delete_request(self):
         """It should handle Error for failed DELETE"""
         self.test_create_counter()
-        with patch("service.routes.Counter.redis.get") as redis_mock:
+        with patch("service.routes.Counter.redis.exists") as redis_mock:
             redis_mock.return_value = 0
             redis_mock.side_effect = DatabaseConnectionError()
             resp = self.app.delete("/counters/foo")
