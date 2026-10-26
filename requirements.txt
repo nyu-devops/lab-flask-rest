@@ -1,0 +1,14 @@
+# Flask and extensions
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Redis client
+redis==5.0.0
+
+# Testing
+pytest==7.4.2
+pytest-cov==4.1.0
+
+# Code quality (optional, but mentioned in the task)
+flake8==6.1.0
+pylint==2.17.5

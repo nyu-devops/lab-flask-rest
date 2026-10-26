@@ -45,10 +45,10 @@ While this lab is not about testing, it is always a good idea to include tests w
 Run the tests in a `bash` terminal using the following command:
 
 ```bash
-nosetests
+pytest
 ```
 
-This will run the test suite and report your code coverage. If you are interested, the tests are in the `./tests` folder and their configuration is controlled by the `setup.cfg` and `.coveragerc` files. The code coverage is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
+This will run the test suite and report your code coverage. If you are interested, the tests are in the `./tests` folder and their configuration is controlled by the `pyproject.toml` and `setup.cfg` files. The code coverage is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
 
 ### Run the REST service
 
@@ -103,6 +103,53 @@ curl -i -X PUT http://127.0.0.1:8000/counters/foo/reset
 ```
 
 You can also experiment with a REST client like [Postman](https://www.postman.com). This makes it much easier to manipulate your REST API than using the command line.
+
+## Counter name validation
+
+Every endpoint that takes a counter name in the URL (`POST`, `GET`, `PUT`, and `DELETE` on `/counters/<name>`) validates the name **before** doing any work. A counter name must:
+
+| Rule | Example of a valid name | Example of an invalid name |
+|------|-------------------------|----------------------------|
+| Be between **1 and 50** characters long | `hits` | 51 or more characters |
+| Contain only **letters** (`A-Z`, `a-z`), **numbers** (`0-9`), **hyphens** (`-`), and **underscores** (`_`) | `page-views_2024` | `page views`, `café`, `foo.bar`, `foo!` |
+| Not be **empty** or contain **only whitespace** | `a` | `%20` (a single space) |
+
+Valid names are used exactly as given: they are case-sensitive and are never trimmed or altered, so `Foo` and `foo` are two different counters.
+
+The validation rules live in [`service/validators.py`](service/validators.py). The `validate_counter_name()` function raises a `ValidationError` for bad input, and the error handler in `service/common/error_handlers.py` turns that into an HTTP response.
+
+### How invalid requests are handled
+
+If the name fails validation the service does not touch the database and responds with `400 Bad Request`. The body is a JSON document with the same shape as the other error responses (`status`, `error`, and `message`), and the `message` explains what was wrong and what is allowed:
+
+```bash
+curl -i -X POST "http://127.0.0.1:8000/counters/bad%20name"
+```
+
+```http
+HTTP/1.1 400 BAD REQUEST
+Content-Type: application/json
+
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Counter name 'bad name' contains invalid characters; only letters, numbers, hyphens (-), and underscores (_) are allowed"
+}
+```
+
+Other example messages:
+
+| Request | Message |
+|---------|---------|
+| `POST /counters/%20` | `Counter name must not be empty or contain only whitespace` |
+| `GET /counters/aaaa...` (51 characters) | `Counter name must be between 1 and 50 characters long, but 'aaaa...' is 51 characters` |
+| `DELETE /counters/caf%C3%A9` | `Counter name 'café' contains invalid characters; only letters, numbers, hyphens (-), and underscores (_) are allowed` |
+
+A few things worth knowing:
+
+* Validation happens before the existence check, so an invalid name returns `400` rather than `404` (for `GET`/`PUT`) or `409` (for `POST`).
+* `DELETE` is normally idempotent and returns `204 No Content` even if the counter does not exist, but an invalid name is a client error and still returns `400`.
+* An empty name (`/counters/`) never reaches the service code because there is no matching route, so Flask returns `404 Not Found` for it.
 
 ## Bring down the development environment
 

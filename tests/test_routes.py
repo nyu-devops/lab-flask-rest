@@ -27,6 +27,7 @@ from unittest.mock import patch
 from wsgi import app
 from service.models import Counter, DatabaseConnectionError
 from service.common import status
+from service.validators import MAX_NAME_LENGTH
 
 # logging.disable(logging.CRITICAL)
 
@@ -36,7 +37,7 @@ DATABASE_URI = os.getenv("DATABASE_URI", "redis://:@localhost:6379/0")
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class ServiceTest(TestCase):
+class ServiceTest(TestCase):  # pylint: disable=too-many-public-methods
     """REST API Server Tests"""
 
     @classmethod
@@ -134,6 +135,154 @@ class ServiceTest(TestCase):
         """It should not allow usuported Methods"""
         resp = self.app.post("/counters")
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    ######################################################################
+    #  T E S T   N A M E   V A L I D A T I O N
+    ######################################################################
+
+    def assert_bad_request(self, resp, expected_fragment):
+        """Asserts a 400 JSON error response with a helpful message"""
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.content_type, "application/json")
+        data = resp.get_json()
+        self.assertEqual(data["status"], status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(data["error"], "Bad Request")
+        self.assertIn(expected_fragment, data["message"])
+
+    def test_create_counter_with_hyphens_and_underscores(self):
+        """It should Create counters whose names contain - and _"""
+        for name in ["foo-bar", "foo_bar", "foo-bar_baz-1", "-", "_"]:
+            with self.subTest(name=name):
+                resp = self.app.post(f"/counters/{name}")
+                self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+                self.assertEqual(resp.get_json()["name"], name)
+
+    def test_create_counter_with_numbers_and_mixed_case(self):
+        """It should Create counters with digits and upper case letters"""
+        for name in ["123", "Foo", "FOO", "f00"]:
+            with self.subTest(name=name):
+                resp = self.app.post(f"/counters/{name}")
+                self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+                self.assertEqual(resp.get_json()["name"], name)
+
+    def test_create_counter_single_character_name(self):
+        """It should Create a counter with a one character name"""
+        resp = self.app.post("/counters/a")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.get_json()["name"], "a")
+
+    def test_create_counter_max_length_name(self):
+        """It should Create a counter with a name of exactly 50 characters"""
+        name = "a" * MAX_NAME_LENGTH
+        resp = self.app.post(f"/counters/{name}")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.get_json()["name"], name)
+        # and the full CRUD cycle should work with it
+        resp = self.app.get(f"/counters/{name}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        resp = self.app.put(f"/counters/{name}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        resp = self.app.delete(f"/counters/{name}")
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_create_counter_name_too_long(self):
+        """It should not Create a counter with a name over 50 characters"""
+        name = "a" * (MAX_NAME_LENGTH + 1)
+        resp = self.app.post(f"/counters/{name}")
+        self.assert_bad_request(resp, f"between 1 and {MAX_NAME_LENGTH} characters")
+        # nothing should have been created
+        resp = self.app.get("/counters")
+        self.assertEqual(resp.get_json(), [])
+
+    def test_create_counter_whitespace_only_name(self):
+        """It should not Create a counter whose name is only whitespace"""
+        for path in ["/counters/%20", "/counters/%20%20%20", "/counters/%09"]:
+            with self.subTest(path=path):
+                resp = self.app.post(path)
+                self.assert_bad_request(resp, "must not be empty or contain only whitespace")
+        resp = self.app.get("/counters")
+        self.assertEqual(resp.get_json(), [])
+
+    def test_create_counter_name_with_spaces(self):
+        """It should not Create a counter with spaces in the name"""
+        for path in ["/counters/foo%20bar", "/counters/%20foo", "/counters/foo%20"]:
+            with self.subTest(path=path):
+                resp = self.app.post(path)
+                self.assert_bad_request(resp, "invalid characters")
+
+    def test_create_counter_name_with_special_characters(self):
+        """It should not Create a counter with punctuation or symbols in the name"""
+        for name in ["foo!", "foo.bar", "foo@bar", "foo%24", "foo%3Bbar", "%7Bfoo%7D"]:
+            with self.subTest(name=name):
+                resp = self.app.post(f"/counters/{name}")
+                self.assert_bad_request(resp, "invalid characters")
+
+    def test_create_counter_name_with_unicode(self):
+        """It should not Create a counter with non-ASCII characters in the name"""
+        resp = self.app.post("/counters/caf%C3%A9")
+        self.assert_bad_request(resp, "invalid characters")
+        self.assertIn("café", resp.get_json()["message"])
+
+    def test_create_counter_empty_name(self):
+        """It should not Create a counter with an empty name"""
+        # An empty name never reaches the handler: there is no route for it
+        resp = self.app.post("/counters/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_counter_invalid_name(self):
+        """It should not Read a counter with an invalid name"""
+        resp = self.app.get("/counters/foo!")
+        self.assert_bad_request(resp, "invalid characters")
+        resp = self.app.get("/counters/%20")
+        self.assert_bad_request(resp, "must not be empty")
+        resp = self.app.get(f"/counters/{'a' * (MAX_NAME_LENGTH + 1)}")
+        self.assert_bad_request(resp, "characters long")
+
+    def test_update_counter_invalid_name(self):
+        """It should not Update a counter with an invalid name"""
+        resp = self.app.put("/counters/foo!")
+        self.assert_bad_request(resp, "invalid characters")
+        resp = self.app.put("/counters/%20")
+        self.assert_bad_request(resp, "must not be empty")
+        resp = self.app.put(f"/counters/{'a' * (MAX_NAME_LENGTH + 1)}")
+        self.assert_bad_request(resp, "characters long")
+
+    def test_delete_counter_invalid_name(self):
+        """It should not Delete a counter with an invalid name"""
+        # DELETE is normally idempotent (204 even if missing) but an
+        # invalid name is a client error and should be reported
+        resp = self.app.delete("/counters/foo!")
+        self.assert_bad_request(resp, "invalid characters")
+        resp = self.app.delete("/counters/%20")
+        self.assert_bad_request(resp, "must not be empty")
+        resp = self.app.delete(f"/counters/{'a' * (MAX_NAME_LENGTH + 1)}")
+        self.assert_bad_request(resp, "characters long")
+
+    def test_invalid_name_is_rejected_before_database_access(self):
+        """It should validate the name before touching the database"""
+        with patch("service.routes.Counter.find") as find_mock:
+            for method in ["post", "get", "put", "delete"]:
+                with self.subTest(method=method):
+                    resp = getattr(self.app, method)("/counters/not%20valid")
+                    self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+            find_mock.assert_not_called()
+
+    def test_invalid_name_takes_precedence_over_not_found(self):
+        """It should return 400 not 404 for an invalid name that does not exist"""
+        resp = self.app.get("/counters/does-not-exist!")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.app.put("/counters/does-not-exist!")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_bad_request_message_is_helpful(self):
+        """It should explain what is wrong and what is allowed"""
+        resp = self.app.post("/counters/bad%20name")
+        message = resp.get_json()["message"]
+        self.assertIn("'bad name'", message)
+        self.assertIn("letters", message)
+        self.assertIn("numbers", message)
+        self.assertIn("hyphens", message)
+        self.assertIn("underscores", message)
 
     ######################################################################
     #  T E S T   E R R O R   H A N D L E R S

@@ -41,7 +41,7 @@ disable = "no-member,protected-access,global-statement"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--pspec --cov=service --cov-fail-under=95"
+addopts = "--cov=service --cov-fail-under=95"
 testpaths = ["tests"]
 
 [tool.coverage.run]

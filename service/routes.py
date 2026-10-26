@@ -18,11 +18,17 @@
 Counter Service
 
 This service keeps track of named counters
+
+Every endpoint that takes a counter name in the URL validates it with
+validate_counter_name() before doing any work. If the name is invalid a
+ValidationError is raised, which the error handlers in
+service.common.error_handlers turn into a 400 Bad Request JSON response.
 """
 from flask import jsonify, abort, url_for
 from flask import current_app as app
 from service.common import status  # HTTP Status Codes
 from service.models import Counter
+from service.validators import validate_counter_name
 
 
 ######################################################################
@@ -67,6 +73,7 @@ def list_counters():
 def read_counters(name):
     """Read a counter"""
     app.logger.info("Request to Read counter: '%s'...", name)
+    validate_counter_name(name)
 
     counter = Counter.find(name)
 
@@ -84,6 +91,7 @@ def read_counters(name):
 def create_counters(name):
     """Create a counter"""
     app.logger.info("Request to Create counter: '%s'...", name)
+    validate_counter_name(name)
 
     counter = Counter.find(name)
     if counter is not None:
@@ -107,6 +115,7 @@ def create_counters(name):
 def update_counters(name):
     """Update a counter"""
     app.logger.info("Request to Update counter: '%s'...", name)
+    validate_counter_name(name)
 
     counter = Counter.find(name)
     if counter is None:
@@ -125,6 +134,7 @@ def update_counters(name):
 def delete_counters(name):
     """Delete a counter"""
     app.logger.info("Request to Delete counter: '%s'...", name)
+    validate_counter_name(name)
 
     counter = Counter.find(name)
     if counter:
