@@ -80,8 +80,9 @@ def read_counters(name):
     if not counter:
         error(status.HTTP_404_NOT_FOUND, f"Counter '{name}' does not exist")
 
-    app.logger.info("Returning: %d...", counter.value)
-    return jsonify(counter.serialize())
+    data = counter.serialize()
+    app.logger.info("Returning: %d...", data["counter"])
+    return jsonify(data)
 
 
 ############################################################
@@ -93,11 +94,10 @@ def create_counters(name):
     app.logger.info("Request to Create counter: '%s'...", name)
     validate_counter_name(name)
 
-    counter = Counter.find(name)
-    if counter is not None:
+    # create() is atomic (SET NX) so concurrent requests cannot both succeed
+    counter = Counter.create(name)
+    if counter is None:
         error(status.HTTP_409_CONFLICT, f"Counter '{name}' already exists")
-
-    counter = Counter(name)
 
     location_url = url_for("read_counters", name=name, _external=True)
     app.logger.info("Counter '%s' created", name)

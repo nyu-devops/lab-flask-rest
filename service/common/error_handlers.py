@@ -17,97 +17,53 @@
 """
 Error Handlers
 
-This module contains error handlers functions to send back errors as json
+Every error the service returns has the same JSON shape:
+
+    {"status": <code>, "error": <short label>, "message": <details>}
+
+Handlers are registered from the _ERRORS table below rather than written
+out one by one, so adding support for a new status code is a single line.
 """
+from functools import partial
 from flask import jsonify
 from flask import current_app as app
 from service.common import status
 from service.models import DatabaseConnectionError
 from service.validators import ValidationError
 
+# status code -> (label sent to the client, logger method used to record it)
+_ERRORS = {
+    status.HTTP_400_BAD_REQUEST: ("Bad Request", "warning"),
+    status.HTTP_404_NOT_FOUND: ("Not Found", "warning"),
+    status.HTTP_405_METHOD_NOT_ALLOWED: ("Method not Allowed", "warning"),
+    status.HTTP_409_CONFLICT: ("Conflict", "warning"),
+    status.HTTP_500_INTERNAL_SERVER_ERROR: ("Internal Server Error", "error"),
+    status.HTTP_503_SERVICE_UNAVAILABLE: ("Service is unavailable", "error"),
+}
+
+# application exceptions -> the status code they should be reported as
+_EXCEPTIONS = {
+    ValidationError: status.HTTP_400_BAD_REQUEST,
+    DatabaseConnectionError: status.HTTP_503_SERVICE_UNAVAILABLE,
+}
+
+
+def json_error(status_code, error):
+    """Logs the error and returns it to the client as JSON"""
+    label, log_level = _ERRORS[status_code]
+    message = str(error)
+    getattr(app.logger, log_level)(message)
+    return (
+        jsonify(status=status_code, error=label, message=message),
+        status_code,
+    )
+
+
 ######################################################################
-# Error Handlers
+# Register the handlers
 ######################################################################
+for _code in _ERRORS:
+    app.register_error_handler(_code, partial(json_error, _code))
 
-
-@app.errorhandler(DatabaseConnectionError)
-def database_connection_error(error):
-    """Handles database connection errors with 503_SERVICE_UNAVAILABLE"""
-    return service_unavailable(error)
-
-
-@app.errorhandler(ValidationError)
-def request_validation_error(error):
-    """Handles input that fails validation with 400_BAD_REQUEST"""
-    return bad_request(error)
-
-
-@app.errorhandler(status.HTTP_400_BAD_REQUEST)
-def bad_request(error):
-    """Handles bad requests with 400_BAD_REQUEST"""
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_400_BAD_REQUEST,
-            error="Bad Request",
-            message=message,
-        ),
-        status.HTTP_400_BAD_REQUEST,
-    )
-
-
-@app.errorhandler(status.HTTP_404_NOT_FOUND)
-def not_found(error):
-    """Handles resources not found with 404_NOT_FOUND"""
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message),
-        status.HTTP_404_NOT_FOUND,
-    )
-
-
-@app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
-def method_not_supported(error):
-    """Handles unsupported HTTP methods with 405_METHOD_NOT_SUPPORTED"""
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            error="Method not Allowed",
-            message=message,
-        ),
-        status.HTTP_405_METHOD_NOT_ALLOWED,
-    )
-
-
-@app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
-def internal_server_error(error):
-    """Handles unexpected server error with 500_SERVER_ERROR"""
-    message = str(error)
-    app.logger.error(message)
-    return (
-        jsonify(
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            error="Internal Server Error",
-            message=message,
-        ),
-        status.HTTP_500_INTERNAL_SERVER_ERROR,
-    )
-
-
-@app.errorhandler(status.HTTP_503_SERVICE_UNAVAILABLE)
-def service_unavailable(error):
-    """Handles unexpected server error with 503_SERVICE_UNAVAILABLE"""
-    message = str(error)
-    app.logger.error(message)
-    return (
-        jsonify(
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            error="Service is unavailable",
-            message=message,
-        ),
-        status.HTTP_503_SERVICE_UNAVAILABLE,
-    )
+for _exception, _code in _EXCEPTIONS.items():
+    app.register_error_handler(_exception, partial(json_error, _code))
