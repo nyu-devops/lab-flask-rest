@@ -4,7 +4,7 @@ Werkzeug==2.3.7
 
 # Redis client
 redis==5.0.0
-flask-redis=0.4.0
+flask-redis==0.4.0
 
 # Testing
 pytest==7.4.2
