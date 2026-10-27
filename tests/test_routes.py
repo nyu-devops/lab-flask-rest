@@ -24,10 +24,10 @@ import logging
 from unittest import TestCase
 from unittest.mock import patch
 from wsgi import app
-from service.config import DATABASE_URI
 from service.models import Counter, DatabaseConnectionError
 from service.common import status
 from service.validators import MAX_NAME_LENGTH
+from tests import TEST_DATABASE_URI
 
 # logging.disable(logging.CRITICAL)
 
@@ -43,19 +43,12 @@ class ServiceTest(TestCase):  # pylint: disable=too-many-public-methods
         """This runs once before the entire test suite"""
         app.testing = True
         app.debug = False
-
-    @classmethod
-    def tearDownClass(cls):
-        """This runs once after the entire test suite"""
+        Counter.connect(TEST_DATABASE_URI)
 
     def setUp(self):
         """This runs before each test"""
-        Counter.connect(DATABASE_URI)
         Counter.remove_all()
         self.app = app.test_client()
-
-    def tearDown(self):
-        """This runs after each test"""
 
     ######################################################################
     #  T E S T   C A S E S
@@ -286,44 +279,38 @@ class ServiceTest(TestCase):  # pylint: disable=too-many-public-methods
     #  T E S T   E R R O R   H A N D L E R S
     ######################################################################
 
-    @patch("service.routes.Counter.redis.exists")
-    def test_failed_get_request(self, redis_mock):
+    @patch("service.routes.Counter.find")
+    def test_failed_get_request(self, find_mock):
         """It should handle Error for failed GET"""
-        redis_mock.return_value = 0
-        redis_mock.side_effect = DatabaseConnectionError()
+        find_mock.side_effect = DatabaseConnectionError()
         resp = self.app.get("/counters/foo")
         self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch("service.models.Counter.increment")
-    def test_failed_update_request(self, value_mock):
+    @patch("service.routes.Counter.increment")
+    def test_failed_update_request(self, increment_mock):
         """It should handle Error for failed UPDATE"""
-        value_mock.return_value = 0
-        value_mock.side_effect = DatabaseConnectionError()
+        increment_mock.side_effect = DatabaseConnectionError()
         self.test_create_counter()
         resp = self.app.put("/counters/foo")
         self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch("service.models.Counter.__init__")
-    def test_failed_post_request(self, value_mock):
+    @patch("service.routes.Counter.create")
+    def test_failed_post_request(self, create_mock):
         """It should handle Error for failed POST"""
-        value_mock.return_value = 0
-        value_mock.side_effect = DatabaseConnectionError()
+        create_mock.side_effect = DatabaseConnectionError()
         resp = self.app.post("/counters/foo")
         self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch("service.routes.Counter.redis.scan_iter")
-    def test_failed_list_request(self, redis_mock):
+    @patch("service.routes.Counter.all")
+    def test_failed_list_request(self, all_mock):
         """It should handle Error for failed LIST"""
-        redis_mock.return_value = 0
-        redis_mock.side_effect = Exception()
+        all_mock.side_effect = DatabaseConnectionError()
         resp = self.app.get("/counters")
         self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    def test_failed_delete_request(self):
+    @patch("service.routes.Counter.find")
+    def test_failed_delete_request(self, find_mock):
         """It should handle Error for failed DELETE"""
-        self.test_create_counter()
-        with patch("service.routes.Counter.redis.exists") as redis_mock:
-            redis_mock.return_value = 0
-            redis_mock.side_effect = DatabaseConnectionError()
-            resp = self.app.delete("/counters/foo")
-            self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        find_mock.side_effect = DatabaseConnectionError()
+        resp = self.app.delete("/counters/foo")
+        self.assertEqual(resp.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)

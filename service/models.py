@@ -129,9 +129,13 @@ class Counter:
 
     @classmethod
     def remove_all(cls):
-        """Removes all of the keys in the database"""
+        """Removes all of the counters from the currently selected database
+
+        Only the database named in the connection URI is cleared (FLUSHDB),
+        other databases on the same Redis server are left alone.
+        """
         try:
-            cls.redis.flushall()
+            cls.redis.flushdb()
         except Exception as err:
             raise DatabaseConnectionError(err) from err
 
@@ -140,11 +144,17 @@ class Counter:
     ######################################################################
 
     @classmethod
-    def test_connection(cls):
-        """Test connection by pinging the host"""
+    def test_connection(cls, client=None):
+        """Test connection by pinging the host
+
+        Arguments:
+            client: the Redis client to test (defaults to the current connection)
+        """
+        if client is None:
+            client = cls.redis
         success = False
         try:
-            cls.redis.ping()
+            client.ping()
             logger.info("Connection established")
             success = True
         except RedisConnectionError:
@@ -168,15 +178,14 @@ class Counter:
 
         logger.info("Attempting to connect to Redis...")
 
-        cls.redis = Redis.from_url(
-            database_uri, encoding="utf-8", decode_responses=True
-        )
+        client = Redis.from_url(database_uri, encoding="utf-8", decode_responses=True)
 
-        if not cls.test_connection():
-            # if you end up here, redis instance is down.
-            cls.redis = None
+        if not cls.test_connection(client):
+            # if you end up here, redis instance is down. Any existing
+            # connection is left untouched so a failed attempt is harmless.
             logger.fatal("*** FATAL ERROR: Could not connect to the Redis Service")
             raise DatabaseConnectionError("Could not connect to the Redis Service")
 
+        cls.redis = client
         logger.info("Successfully connected to Redis")
         return cls.redis

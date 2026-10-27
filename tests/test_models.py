@@ -25,8 +25,8 @@ import logging
 from unittest import TestCase
 from unittest.mock import patch
 from redis.exceptions import ConnectionError as RedisConnectionError
-from service.config import DATABASE_URI
 from service.models import Counter, DatabaseConnectionError
+from tests import TEST_DATABASE_URI
 
 
 logging.disable(logging.CRITICAL)
@@ -41,17 +41,12 @@ class CounterTests(TestCase):
     @classmethod
     def setUpClass(cls):
         """Run before all tests"""
-        # Counter.connect(DATABASE_URI)
+        Counter.connect(TEST_DATABASE_URI)
 
     def setUp(self):
         """This runs before each test"""
-        Counter.connect(DATABASE_URI)
         Counter.remove_all()
         self.counter = Counter()
-
-    def tearDown(self):
-        """This runs after each test"""
-        # Counter.redis.flushall()
 
     ######################################################################
     #  T E S T   C A S E S
@@ -133,12 +128,42 @@ class CounterTests(TestCase):
         counter.increment()
         self.assertEqual(counter.value, 2)
 
+    ######################################################################
+    #  C O N N E C T I O N   A N D   E R R O R   H A N D L I N G
+    ######################################################################
+
+    def test_connection_is_healthy(self):
+        """It should report a healthy connection"""
+        self.assertTrue(Counter.test_connection())
+
     @patch("redis.Redis.ping")
     def test_no_connection(self, ping_mock):
         """It should Handle a failed connection"""
         ping_mock.side_effect = RedisConnectionError()
-        self.assertRaises(DatabaseConnectionError, self.counter.connect, DATABASE_URI)
+        self.assertRaises(DatabaseConnectionError, Counter.connect, TEST_DATABASE_URI)
+
+    @patch("redis.Redis.ping")
+    def test_failed_connect_keeps_existing_connection(self, ping_mock):
+        """It should keep the existing connection when a new connect() fails"""
+        ping_mock.side_effect = RedisConnectionError()
+        before = Counter.redis
+        with self.assertRaises(DatabaseConnectionError):
+            Counter.connect(TEST_DATABASE_URI)
+        self.assertIs(Counter.redis, before)
 
     def test_missing_database_uri(self):
         """It should detect a missing database URI"""
-        self.assertRaises(DatabaseConnectionError, self.counter.connect, "")
+        self.assertRaises(DatabaseConnectionError, Counter.connect, "")
+
+    def test_redis_errors_are_wrapped(self):
+        """It should raise DatabaseConnectionError when Redis fails"""
+        cases = {
+            "exists": lambda: Counter.find("foo"),
+            "scan_iter": Counter.all,
+            "set": lambda: Counter.create("foo"),
+            "flushdb": Counter.remove_all,
+        }
+        for command, operation in cases.items():
+            with self.subTest(command=command):
+                with patch.object(Counter.redis, command, side_effect=Exception("boom")):
+                    self.assertRaises(DatabaseConnectionError, operation)
