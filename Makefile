@@ -1,4 +1,4 @@
-.PHONY: all help install venv test run
+.PHONY: all help install requirements venv test run
 
 help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-\\.]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -12,6 +12,19 @@ venv: ## Create a Python virtual environment
 install: ## Install dependencies
 	$(info Installing dependencies...)
 	sudo poetry install
+
+requirements: ## Regenerate requirements.txt from poetry.lock (needs poetry-plugin-export)
+	$(info Exporting requirements.txt from poetry.lock...)
+	@printf '%s\n' \
+	  '# GENERATED FILE - DO NOT EDIT BY HAND' \
+	  '#' \
+	  '# pyproject.toml / poetry.lock are the source of truth for dependencies.' \
+	  '# This file is a pip-compatible export of the lock (main + dev groups) for' \
+	  '# environments that do not use Poetry, e.g. the Vagrantfile.' \
+	  '#' \
+	  '# Regenerate after changing dependencies with:  make requirements' \
+	  '' > requirements.txt
+	poetry export --with dev --without-hashes -f requirements.txt >> requirements.txt
 
 lint: ## Run the linter
 	$(info Running linting...)
